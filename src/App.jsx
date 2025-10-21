@@ -1,58 +1,30 @@
-import { useState } from 'react';
-import { login, register, logout } from './services/authService';
+import "./App.css";
+import { Analytics } from "@vercel/analytics/react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Topup_ml from "./pages/Topup_ml";
+import NotFound from "./pages/NotFound";
+import Account_ml from "./pages/Account_ml";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import ConsumeApi from "./pages/ConsumeApi";
 
 function App() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-
-  const handleRegister = async () => {
-    try {
-      const res = await register(name, email, password);
-      alert('Register berhasil: ' + JSON.stringify(res));
-    } catch (err) {
-      alert('Register gagal: ' + err.message);
-    }
-  };
-
-  const handleLogin = async () => {
-    try {
-      const res = await login(email, password);
-      alert('Login berhasil: ' + JSON.stringify(res));
-    } catch (err) {
-      alert('Login gagal: ' + err.message);
-    }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    alert('Logout berhasil!');
-  };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>React Vite + Laravel Auth</h1>
+    <>
+    <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Home />}/>
+      <Route path="topup_ml" element={<Topup_ml />}/>
+      <Route path="account_ml" element={<Account_ml />}/>
+      <Route path="consume_api" element={<ConsumeApi />}/>
+      <Route path="/payment/success/:orderId" element={<PaymentSuccess />}/>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+    <Analytics />
+    </BrowserRouter>
 
-      <div>
-        <h2>Register</h2>
-        <input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
-        <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-        <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-        <button onClick={handleRegister}>Register</button>
-      </div>
-
-      <div>
-        <h2>Login</h2>
-        <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-        <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-        <button onClick={handleLogin}>Login</button>
-      </div>
-
-      <div>
-        <h2>Logout</h2>
-        <button onClick={handleLogout}>Logout</button>
-      </div>
-    </div>
+    </>
   );
 }
 
