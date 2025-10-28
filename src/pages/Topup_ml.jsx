@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+// Hapus Navbar di sini jika sudah ada di App.jsx
 import HeaderBar from "../components/HeaderBar";
 import CardTopup from "../components/CardTopup";
 import { Button, Card, Checkbox, Label, TextInput } from "flowbite-react";
 import ModalDetailPesanan from "../components/ModalDetailPesanan";
 import FooterUniversal from "../components/FooterUniversal";
-import Navbar from "../components/NavBar";
 import Banner from "../assets/BannerPfsStore.png";
 import CustomerService from "../components/CustomerService";
 
@@ -22,6 +22,10 @@ const Topup_ml = () => {
   const [nicknameError, setNicknameError] = useState("");
   const step2Ref = useRef(null);
   const [orderId, setOrderId] = useState(null);
+
+  useEffect(() => {
+    document.title = "Top Up Mobile Legends | Paper Fires Store";
+  }, []);
 
   // Fungsi untuk menangani klik beli
   const handleBuyClick = async () => {
@@ -79,7 +83,6 @@ const Topup_ml = () => {
         setSnapToken(data.token); // ✅ simpan token
 
         // Memeriksa status transaksi setelah mendapatkan orderId
-        // checkTransactionStatus(data.order_id); // Panggil fungsi untuk cek status transaksi setelah pemesanan dibuat
         setOrderId(data.order_id); // ✅ Simpan order_id ke state
 
         setOpenModal(true); // ✅ buka modal konfirmasi setelah nickname berhasil
@@ -96,40 +99,36 @@ const Topup_ml = () => {
   const checkTransactionStatus = async (orderId) => {
     console.log("Checking status for orderId:", orderId);
     try {
-      const response = await fetch(`/api/payment/status/${orderId}`); // pakai relative URL
+      const response = await fetch(`/api/payment/status/${orderId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch transaction status: ${response.statusText}`);
       }
-  
+
       const result = await response.json();
       const transactionStatus = result.status || result.data?.transaction_status;
-  
-      console.log("Transaction status from backend:", transactionStatus);
-  
+
       if (transactionStatus === "settlement") {
         console.log("Pembayaran berhasil");
-        // bisa update Firebase/UI
       } else {
         console.log("Status pembayaran:", transactionStatus);
       }
-  
-      return transactionStatus; // optional return
+
+      return transactionStatus;
     } catch (error) {
       console.error("Error checking transaction status:", error);
-      return null; // return null atau false jika gagal
+      return null;
     }
-  };  
-  
+  };
 
   // Fungsi untuk menangani penutupan modal dan memeriksa status transaksi
   const handleModalClose = async () => {
     if (orderId) {
-      await checkTransactionStatus(orderId); // ✅ Panggil status berdasarkan orderId dari state
+      await checkTransactionStatus(orderId); // Panggil status berdasarkan orderId dari state
       console.log("Checking status for orderId:", orderId);
     } else {
       console.warn("⚠ Tidak ada orderId yang tersedia.");
     }
-  
+
     setOpenModal(false); // Menutup modal
   };
 
@@ -155,12 +154,7 @@ const Topup_ml = () => {
       setNickname(""); // Set nickname kosong jika error
       setNicknameError("Gagal mengambil data");
     }
-  }, [userId, zoneId]); // Memastikan handleLookup hanya berubah ketika userId dan zoneId berubah
-
-  // Mengubah document title
-  useEffect(() => {
-    document.title = "Top Up Mobile Legends | Paper Fires Store";
-  }, []);
+  }, [userId, zoneId]);
 
   // Memanggil handleLookup setiap kali userId dan zoneId berubah
   useEffect(() => {
@@ -179,7 +173,6 @@ const Topup_ml = () => {
 
   return (
     <div className="w-full bg-gray-800">
-      <Navbar />
       <div className="flex flex-col gap-5 px-2 md:px-15 md:gap-10">
         {/* Banner */}
         <div className="relative flex justify-center w-full mt-10 md:w-full">
