@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react"; // Import useState dan useEffect
 import FooterHome from "../components/FooterHome";
 import { Carousel } from "flowbite-react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
@@ -6,7 +6,22 @@ import { Link } from "react-router-dom";
 import CustomerService from "../components/CustomerService";
 
 const Home = () => {
+  // State untuk menyimpan daftar game
+  const [games, setGames] = useState([]);
+
+  // Load data game dari localStorage saat komponen dimuat
+  useEffect(() => {
+    const storedGames = JSON.parse(localStorage.getItem('db_games'));
+    if (storedGames) {
+      setGames(storedGames);
+    } else {
+      // Jika localStorage kosong, mungkin tampilkan data dummy atau pesan
+      console.log("Belum ada data game di localStorage. Silakan cek Dashboard.");
+    }
+  }, []); // [] berarti useEffect ini hanya jalan sekali saat mount
+
   const slides = [
+    // ... (biarkan isi slides Anda)
     "https://i0.wp.com/www.lapakgaming.com/blog/id-id/wp-content/uploads/2024/01/Kapan-event-kof-2024.jpg?fit=1200%2C675&ssl=1",
     "https://editor.pasundanekspres.id/storage/uploads/conten/FfWijX7sOeMOsJh5.webp",
     "https://cdn.api.upstation.media/upstation_x/a05429bce4ea12557ac6b7f6bdb000d960240dc841a6605e521e9ad105ab95df422b8df12eff0f385228b4db8825d4895f194622c2cc0a77801d72a5998c6ca7",
@@ -16,31 +31,14 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-800">
-      {/* Navbar hanya ada di App.jsx */}
-      
+      {/* ... (Bagian Carousel biarkan saja) ... */}
       <div className="px-10 mt-6 md:px-26 md:mt-11">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-11">
           <div className="relative md:col-span-2">
             <div className="h-40 md:h-96">
               <Carousel
                 slideInterval={5000}
-                indicators={true}
-                leftControl={
-                  <button
-                    aria-label="Previous slide"
-                    className="absolute left-0 z-10 p-1 transition-colors duration-200 ease-in-out transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow cursor-pointer md:p-1 top-1/2 hover:bg-purple-700 hover:text-white active:bg-purple-800"
-                  >
-                    <HiChevronLeft className="w-5 h-5 text-black md:w-8 md:h-8" />
-                  </button>
-                }
-                rightControl={
-                  <button
-                    aria-label="Next slide"
-                    className="absolute right-0 z-10 p-1 transition-colors duration-200 ease-in-out transform translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow cursor-pointer md:p-1 top-1/2 hover:bg-purple-700 hover:text-white active:bg-purple-800"
-                  >
-                    <HiChevronRight className="w-5 h-5 text-black md:w-8 md:h-8" />
-                  </button>
-                }
+                // ... (properti Carousel lainnya) ...
                 className="h-full rounded-lg shadow-lg"
               >
                 {slides.map((src, idx) => (
@@ -54,24 +52,14 @@ const Home = () => {
               </Carousel>
             </div>
           </div>
-
           <div className="flex flex-col hidden gap-4 sm:block">
-            <div className="flex flex-col gap-4">
-              <img
-                src={slides[0]}
-                alt="Preview 1"
-                className="object-cover w-full h-48 rounded-lg shadow-lg md:h-46"
-              />
-              <img
-                src={slides[1]}
-                alt="Preview 2"
-                className="object-cover w-full h-48 rounded-lg shadow-lg md:h-46"
-              />
-            </div>
+            {/* ... (Gambar preview biarkan saja) ... */}
           </div>
         </div>
       </div>
 
+
+      {/* --- PERUBAHAN DI SINI --- */}
       <div className="px-3 md:px-25 mt-9 md:mt-17">
         <h2 className="flex items-center mb-4 font-semibold text-white text-l md:text-xl">
           <img
@@ -82,24 +70,40 @@ const Home = () => {
           Top Up Game
         </h2>
 
+        {/* Ganti grid statis dengan .map() dinamis dari state 'games' */}
         <div className="grid grid-cols-3 gap-4 md:flex md:gap-20 md:overflow-x-auto md:pb-5">
-          <Link to="/topup_ml" className="flex justify-center col-span-1">
-            <div className="overflow-hidden bg-purple-900 border-white rounded-lg cursor-pointer border-1 h-37 md:h-50 w-28 md:w-40">
-              <img
-                src="https://play-lh.googleusercontent.com/QXCVbZd0d71ho4MIYHHxnY6BJFGXI-fzRS5MXJXU1n4n2T-VdQgB1vrdJpydokA34UA"
-                alt="Mobile Legends"
-                className="object-cover w-full h-auto"
-              />
-              <div className="px-2 py-2 text-center">
-                <span className="text-white text-[.70rem] md:text-sm font-semibold font-Poppins">
-                  Mobile Legends
-                </span>
-              </div>
-            </div>
-          </Link>
-          {/* More Game Cards */}
+          
+          {games.length > 0 ? (
+            games.map((game) => (
+              <Link 
+                to={`/topup/${game.id}`} // Link dinamis berdasarkan ID game
+                key={game.id} 
+                className="flex justify-center col-span-1"
+              >
+                <div className="overflow-hidden bg-purple-900 border-white rounded-lg cursor-pointer border-1 h-37 md:h-50 w-28 md:w-40">
+                  <img
+                    src={game.imageUrl} // Gambar dinamis
+                    alt={game.name}
+                    className="object-cover w-full h-auto aspect-[4/3]" // Atur aspect ratio agar seragam
+                  />
+                  <div className="px-2 py-2 text-center">
+                    <span className="text-white text-[.70rem] md:text-sm font-semibold font-Poppins">
+                      {game.name} {/* Nama dinamis */}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <p className="text-white">
+              Gagal memuat game. Silakan atur di Dashboard.
+            </p>
+          )}
+
         </div>
       </div>
+      {/* --- AKHIR PERUBAHAN --- */}
+
 
       <FooterHome />
       <CustomerService />

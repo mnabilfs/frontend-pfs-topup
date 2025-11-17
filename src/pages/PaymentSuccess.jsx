@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, Button } from "flowbite-react";
-import Navbar from "../components/NavBar";
+import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import FooterPaymentSuccess from "../components/FooterPaymentSuccess";
 import {
