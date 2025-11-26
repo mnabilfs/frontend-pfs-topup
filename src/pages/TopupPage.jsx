@@ -225,7 +225,7 @@ const TopupPage = () => {
         {/* Banner Dinamis */}
         <div className="relative flex justify-center w-full mt-10 md:w-full">
           <img
-            src={gameDetails.bannerUrl} 
+            src={gameDetails.banner_url} 
             alt={`Banner ${gameDetails.name}`}
             className="object-cover object-center w-full h-auto md:h-[530px] md:w-[1470px] rounded-2xl"
           />

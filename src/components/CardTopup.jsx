@@ -44,7 +44,7 @@ const CardTopup = ({ products = [], selectedTopup, setSelectedTopup }) => {
             {/* Baris 1: Ikon + Nama */}
             <div className="flex items-center gap-2 md:gap-3">
               <img 
-                src={product.imageUrl || FALLBACK_ICON_URL} 
+                src={product.image_url || FALLBACK_ICON_URL} 
                 alt={product.name}
                 className="w-6 h-6 md:w-8 md:h-8 object-contain flex-shrink-0"
                 onError={(e) => e.target.src = FALLBACK_ICON_URL} 

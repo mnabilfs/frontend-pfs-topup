@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import Navbar from "../components/Navbar";
 import FooterUniversal from "../components/FooterUniversal";
 import CustomerService from "../components/CustomerService";
 
@@ -13,8 +12,6 @@ const ProductDetail = () => {
 
   return (
     <div className="flex flex-col min-h-screen text-white bg-gray-900">
-      {/* Navbar */}
-      <Navbar />
 
       {/* Main */}
       <main className="flex flex-col gap-8 p-4 lg:flex-row">

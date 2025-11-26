@@ -32,7 +32,7 @@ const FooterHome = () => {
 
   return (
     <footer className="text-gray-300 bg-gray-800 border-t border-gray-700 pt-14">
-      <div className="container grid grid-cols-1 gap-8 px-16 mx-auto md:grid-cols-3">
+      <div className="container grid grid-cols-1 gap-8 px-6 mx-auto md:grid-cols-3">
         <div>
           <div className="mb-10">
             <h3 className="mb-2 text-base font-semibold text-white">Bantuan</h3>
