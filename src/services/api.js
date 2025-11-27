@@ -1,14 +1,18 @@
-import axios from 'axios';
+import axios from "axios";
 
 const API = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api', // URL backend Laravel
+  baseURL: "http://127.0.0.1:8000/api", // URL backend Laravel
   withCredentials: true, // kalau pakai Laravel Sanctum (cookie)
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  }
 });
 
 // Tambahkan interceptor untuk otomatis menambahkan token
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if(token) config.headers.Authorization = `Bearer ${token}`;
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

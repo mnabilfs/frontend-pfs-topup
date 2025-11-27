@@ -11,6 +11,7 @@ import {
   HiOutlineUserCircle,
   HiOutlineX,
   HiOutlineUpload,
+  HiOutlinePhotograph,
 } from "react-icons/hi";
 
 const API_URL = "http://127.0.0.1:8000/api";
@@ -35,7 +36,7 @@ const EMPTY_PRODUCT_FORM = { game_id: "", name: "", price: "", image_url: "" };
 // Helper function untuk API calls
 const apiCall = async (endpoint, method = "GET", data = null) => {
   const token = localStorage.getItem("token");
-  
+
   // if (!token) {
   //   throw new Error("No authentication token found");
   // }
@@ -44,12 +45,12 @@ const apiCall = async (endpoint, method = "GET", data = null) => {
     method,
     headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": `Bearer ${token}`,
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
     },
   };
 
-    if (token) {
+  if (token) {
     options.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -77,6 +78,8 @@ const apiCall = async (endpoint, method = "GET", data = null) => {
 
 // Komponen Upload Image
 const ImageUpload = ({ label, value, onChange, preview }) => {
+  const [isUploading, setIsUploading] = useState(false);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -86,15 +89,25 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Ukuran file maksimal 2MB!");
+    // Maksimal 5MB
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Ukuran file maksimal 10MB!");
       return;
     }
 
+    setIsUploading(true);
     const reader = new FileReader();
+
     reader.onloadend = () => {
       onChange(reader.result);
+      setIsUploading(false);
     };
+
+    reader.onerror = () => {
+      alert("Gagal membaca file!");
+      setIsUploading(false);
+    };
+
     reader.readAsDataURL(file);
   };
 
@@ -113,13 +126,18 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
             className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
-        <label className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-lg cursor-pointer transition-all">
+        <label
+          className={`flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-lg cursor-pointer transition-all ${
+            isUploading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
           <HiOutlineUpload className="w-5 h-5" />
-          Upload
+          {isUploading ? "Loading..." : "Upload"}
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
+            disabled={isUploading}
             className="hidden"
           />
         </label>
@@ -131,6 +149,9 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
             alt="Preview"
             className="h-20 w-20 object-cover rounded border"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Ukuran: {(preview.length / 1024).toFixed(0)} KB
+          </p>
         </div>
       )}
     </div>
@@ -174,6 +195,13 @@ const Sidebar = ({ activePage, setActivePage }) => {
           text="Kelola Harga"
           Icon={HiOutlineTag}
           name="prices"
+          activePage={activePage}
+          setActivePage={setActivePage}
+        />
+        <SidebarLink
+          text="Kelola Banner"
+          Icon={HiOutlinePhotograph} // import dari react-icons/hi
+          name="banners"
           activePage={activePage}
           setActivePage={setActivePage}
         />
@@ -230,6 +258,13 @@ const Dashboard = () => {
   const [selectedGameForPrices, setSelectedGameForPrices] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [banners, setBanners] = useState([]);
+  const [bannerForm, setBannerForm] = useState({
+    title: "",
+    image_url: "",
+    order: 0,
+    is_active: true,
+  });
 
   // // Check authentication
   // useEffect(() => {
@@ -245,6 +280,7 @@ const Dashboard = () => {
   useEffect(() => {
     loadGames();
     loadProducts();
+    loadBanners();
   }, []);
 
   useEffect(() => {
@@ -264,7 +300,7 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error loading games:", error);
       setError("Gagal memuat data game: " + error.message);
-      
+
       if (error.message.includes("Unauthorized")) {
         localStorage.removeItem("token");
         navigate("/login");
@@ -284,6 +320,16 @@ const Dashboard = () => {
     }
   };
 
+  const loadBanners = async () => {
+    try {
+      const data = await apiCall("/banners/all");
+      setBanners(data);
+    } catch (error) {
+      console.error("Error loading banners:", error);
+      setError("Gagal memuat data banner: " + error.message);
+    }
+  };
+
   const handleEditClick = (type, item) => {
     setEditingId(item.id);
     setEditingType(type);
@@ -295,6 +341,9 @@ const Dashboard = () => {
       setProductForm(item);
       setSelectedGameForPrices(item.game_id.toString());
       setActivePage("prices");
+    } else if (type === "banner") {
+      setBannerForm(item);
+      setActivePage("banners");
     }
   };
 
@@ -303,6 +352,7 @@ const Dashboard = () => {
     setEditingType(null);
     setGameForm(EMPTY_GAME_FORM);
     setProductForm({ ...EMPTY_PRODUCT_FORM, game_id: selectedGameForPrices });
+    setBannerForm({ title: "", image_url: "", order: 0, is_active: true });
   };
 
   const handleGameSubmit = async () => {
@@ -374,6 +424,41 @@ const Dashboard = () => {
     }
   };
 
+  const handleBannerSubmit = async () => {
+    if (!bannerForm.image_url) {
+      alert("Gambar banner wajib diisi!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const bannerData = {
+        title: bannerForm.title,
+        image_url: bannerForm.image_url,
+        order: parseInt(bannerForm.order) || 0,
+        is_active: bannerForm.is_active,
+      };
+
+      if (editingType === "banner" && editingId) {
+        await apiCall(`/banners/${editingId}`, "PUT", bannerData);
+        alert("Banner berhasil di-update!");
+      } else {
+        await apiCall("/banners", "POST", bannerData);
+        alert("Banner berhasil disimpan!");
+      }
+
+      await loadBanners();
+      handleCancelEdit();
+    } catch (error) {
+      console.error("Error saving banner:", error);
+      alert("Gagal menyimpan banner: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (type, id) => {
     if (!window.confirm("Yakin ingin menghapus data ini?")) return;
 
@@ -384,9 +469,12 @@ const Dashboard = () => {
       if (type === "games") {
         await apiCall(`/games/${id}`, "DELETE");
         await loadGames();
-      } else {
+      } else if (type === "products") {
         await apiCall(`/products/${id}`, "DELETE");
         await loadProducts();
+      } else if (type === "banners") {
+        await apiCall(`/banners/${id}`, "DELETE");
+        await loadBanners();
       }
 
       handleCancelEdit();
@@ -427,10 +515,10 @@ const Dashboard = () => {
             )}
 
             {loading && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white p-6 rounded-lg shadow-xl">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-700">Memproses...</p>
+              <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+                <div className="text-center text-white">
+                  <div className="w-28 h-28 mx-auto mb-8 border-t-8 border-b-8 border-purple-600 rounded-full animate-spin"></div>
+                  <p className="text-2xl text-gray-400">Memproses</p>
                 </div>
               </div>
             )}
@@ -796,6 +884,216 @@ const Dashboard = () => {
                       ).length === 0 && (
                         <p className="text-center text-sm text-gray-500 p-6">
                           Belum ada data harga untuk game ini.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activePage === "banners" && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                  Kelola Banner
+                </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* FORM TAMBAH/EDIT BANNER */}
+                  <div className="lg:col-span-1">
+                    <div className="bg-white p-6 rounded-lg shadow-md space-y-4 sticky top-28">
+                      <h3 className="text-lg font-semibold text-gray-700">
+                        {editingType === "banner"
+                          ? `Edit Banner: ${bannerForm.title || "Tanpa Judul"}`
+                          : "Tambah Banner Baru"}
+                      </h3>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Judul Banner (Opsional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Cth: Promo Spesial"
+                          value={bannerForm.title}
+                          onChange={(e) =>
+                            setBannerForm({
+                              ...bannerForm,
+                              title: e.target.value,
+                            })
+                          }
+                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+
+                      <ImageUpload
+                        label="Gambar Banner"
+                        value={bannerForm.image_url}
+                        onChange={(val) =>
+                          setBannerForm({ ...bannerForm, image_url: val })
+                        }
+                        preview={bannerForm.image_url}
+                      />
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Urutan Tampil
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={bannerForm.order}
+                          onChange={(e) =>
+                            setBannerForm({
+                              ...bannerForm,
+                              order: e.target.value,
+                            })
+                          }
+                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Semakin kecil angka, semakin depan urutannya
+                        </p>
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="banner-active"
+                          checked={bannerForm.is_active}
+                          onChange={(e) =>
+                            setBannerForm({
+                              ...bannerForm,
+                              is_active: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <label
+                          htmlFor="banner-active"
+                          className="ml-2 text-sm font-medium text-gray-700"
+                        >
+                          Aktif (Tampilkan di Home)
+                        </label>
+                      </div>
+
+                      <div className="flex justify-end pt-2 gap-3">
+                        {editingType === "banner" && (
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={loading}
+                            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                          >
+                            <HiOutlineX className="w-5 h-5" />
+                            Batal
+                          </button>
+                        )}
+                        <button
+                          onClick={handleBannerSubmit}
+                          disabled={loading}
+                          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                        >
+                          {editingType === "banner" ? (
+                            <HiOutlinePencil className="w-5 h-5" />
+                          ) : (
+                            <HiOutlinePlus className="w-5 h-5" />
+                          )}
+                          {editingType === "banner"
+                            ? "Update Banner"
+                            : "Simpan Banner"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TABEL DAFTAR BANNER */}
+                  <div className="lg:col-span-2">
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                              Preview
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                              Judul
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                              Urutan
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                              Status
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                              Aksi
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {banners.map((banner) => (
+                            <tr
+                              key={banner.id}
+                              className={`hover:bg-gray-50 ${
+                                editingId === banner.id &&
+                                editingType === "banner"
+                                  ? "bg-purple-50"
+                                  : ""
+                              }`}
+                            >
+                              <td className="px-4 py-3">
+                                <img
+                                  src={banner.image_url}
+                                  alt={banner.title}
+                                  className="w-20 h-12 object-cover rounded"
+                                />
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {banner.title || "-"}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm text-gray-700">
+                                  {banner.order}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                {banner.is_active ? (
+                                  <span className="px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+                                    Aktif
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">
+                                    Nonaktif
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 space-x-2">
+                                <button
+                                  onClick={() =>
+                                    handleEditClick("banner", banner)
+                                  }
+                                  disabled={loading}
+                                  className="p-1.5 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 disabled:opacity-50"
+                                >
+                                  <HiOutlinePencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDelete("banners", banner.id)
+                                  }
+                                  disabled={loading}
+                                  className="p-1.5 bg-red-100 text-red-600 rounded-md hover:bg-red-200 disabled:opacity-50"
+                                >
+                                  <HiOutlineTrash className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {banners.length === 0 && (
+                        <p className="text-center text-sm text-gray-500 p-6">
+                          Belum ada banner. Tambahkan banner pertama Anda!
                         </p>
                       )}
                     </div>

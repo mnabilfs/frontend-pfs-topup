@@ -8,7 +8,7 @@ import {
   Label,
 } from "flowbite-react";
 import { numberToRupiah } from "../utils/number-to-rupiah";
-import { useNavigate } from "react-router-dom"; // Impor useNavigate
+import { useNavigate } from "react-router-dom";
 
 const ModalDetailPesanan = ({
   open,
@@ -18,25 +18,24 @@ const ModalDetailPesanan = ({
   userId,
   zoneId,
   snapToken,
+  gameName, // Tambahkan parameter gameName
 }) => {
   const { selectedTopup } = data;
   const grossAmount = selectedTopup ? selectedTopup.price * 1.11 : 0;
   const tax = Math.round(grossAmount - grossAmount / 1.11);
   const taxableAmount = grossAmount - tax;
 
-  const navigate = useNavigate(); // Inisialisasi navigate
+  const navigate = useNavigate();
 
   const handleKonfirmasi = () => {
     if (snapToken) {
       window.snap.pay(snapToken, {
         onSuccess: async function (result) {
           console.log("Success:", result);
-           const orderId = result.order_id; // Dapatkan orderId dari hasil response
+          const orderId = result.order_id;
 
-          // Pengecekan status transaksi setelah pembayaran berhasil
           const transactionStatus = await checkTransactionStatus(orderId);
 
-          // Jika status transaksi 'settlement', arahkan ke halaman PaymentSuccess
           if (transactionStatus === "settlement") {
             await handleTopupAfterPayment(orderId);
           }
@@ -58,40 +57,43 @@ const ModalDetailPesanan = ({
 
   const handleTopupAfterPayment = async (orderId) => {
     try {
-      // 1. Kirim permintaan topup ke backend
-      const topupResponse = await fetch("/api/payment/topup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          orderId,
-          userId,
-          zoneId,
-          product_code: selectedTopup?.raw?.product_code,
-        }),
-      });
-  
+      const topupResponse = await fetch(
+        "https://pfs-topup-production-5a0d.up.railway.app/api/payment/topup",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId,
+            userId,
+            zoneId,
+            product_code: selectedTopup?.raw?.product_code,
+          }),
+        }
+      );
+
       const topupResult = await topupResponse.json();
-  
+
       if (!topupResponse.ok) {
         alert("Top-up gagal: " + (topupResult.message || "Tidak diketahui"));
         return;
       }
-  
-      // 2. Mulai polling status setiap 3 detik
-      const maxAttempts = 10; // maksimal 10x percobaan (~30 detik)
+
+      const maxAttempts = 10;
       let attempts = 0;
       const interval = setInterval(async () => {
         attempts++;
-  
-        const statusResponse = await fetch(`/api/payment/check-status/${orderId}`);
+
+        const statusResponse = await fetch(
+          `https://pfs-topup-production-5a0d.up.railway.app/api/payment/check-status/${orderId}`
+        );
         const statusResult = await statusResponse.json();
         const status = statusResult?.data?.topupStatus;
         const message = statusResult?.data?.message || "Tanpa pesan";
-  
+
         console.log(`Percobaan ${attempts}: Status = ${status}`);
-  
+
         if (status === "success") {
           clearInterval(interval);
           alert("Top-up berhasil: " + message);
@@ -103,31 +105,39 @@ const ModalDetailPesanan = ({
           clearInterval(interval);
           alert("Top-up masih diproses, silakan cek kembali nanti.");
         }
-  
-        // Jika status === 0 (PROCESS), lanjut polling
       }, 3000);
     } catch (err) {
       console.error("Top-up error:", err);
       alert("Terjadi kesalahan saat top-up.");
     }
   };
-  
 
-  // Fungsi untuk mengecek status transaksi
   const checkTransactionStatus = async (orderId) => {
     try {
       const response = await fetch(
-        `/api/payment/status/${orderId}`
+        `https://pfs-topup-production-5a0d.up.railway.app/api/payment/status/${orderId}`
       );
       const result = await response.json();
-      const transactionStatus = result.status || result.data?.transaction_status;
+      const transactionStatus =
+        result.status || result.data?.transaction_status;
 
       console.log("Transaction status from backend:", transactionStatus);
-      return transactionStatus; // Mengembalikan status transaksi
+      return transactionStatus;
     } catch (error) {
       console.error("Error checking transaction status:", error);
-      return null; // Mengembalikan null jika terjadi error
+      return null;
     }
+  };
+
+  // Tentukan label berdasarkan gameName
+  const getItemLabel = () => {
+    if (!selectedTopup) return "Item";
+    // Untuk Mobile Legends, tampilkan "Diamond"
+    if (gameName && gameName.toLowerCase() === "mobile legends") {
+      return "Diamond";
+    }
+    // Untuk game lain, gunakan nama produk
+    return selectedTopup.name || "Item";
   };
 
   return (
@@ -135,7 +145,6 @@ const ModalDetailPesanan = ({
       show={open}
       size="md"
       onClose={onClose}
-      // backdropClasses="hidden"
       className="fixed inset-0 flex items-center justify-center z-50 h-screen pt-[25%] md:pt-0 overflow-hidden !bg-none"
     >
       <div className="w-full max-w-md mx-auto animate-fade-in">
@@ -147,32 +156,43 @@ const ModalDetailPesanan = ({
             Mohon konfirmasi Username anda sudah benar.
           </Label>
           <div className="my-2 space-y-4">
-            {/* Diamond */}
+            {/* Item Icon */}
             <div className="flex items-center gap-3 p-3 my-4 bg-purple-800 rounded-lg shadow-sm">
               <img
-                src="https://www.transparentpng.com/thumb/diamond/O3UOts-diamond-best-png.png"
-                alt="logo dm"
-                className="w-6 h-6 md:h-8 md:w-8"
+                src={
+                  selectedTopup?.image_url ||
+                  "https://www.transparentpng.com/thumb/diamond/O3UOts-diamond-best-png.png"
+                }
+                alt="item icon"
+                className="w-6 h-6 md:h-8 md:w-8 object-contain"
               />
               <Label className="!text-white text-sm md:text-lg font-semibold">
-                {selectedTopup?.value || 0} Diamond
+                {getItemLabel()}
               </Label>
             </div>
 
             {/* Info Detail Pemesanan */}
             <div className="space-y-3 text-sm text-white">
-              <div className="flex justify-between px-2 pb-2 text-xs text-black border-b border-gray-500/30 md:text-md">
-                <span>Nickname:</span>
-                <span className="font-semibold">
-                  {nickname || "Belum ditemukan"}
-                </span>
-              </div>
+              {/* Tampilkan Nickname hanya untuk Mobile Legends */}
+              {gameName && gameName.toLowerCase() === "mobile legends" && (
+                <div className="flex justify-between px-2 pb-2 text-xs text-black border-b border-gray-500/30 md:text-md">
+                  <span>Nickname:</span>
+                  <span className="font-semibold">
+                    {nickname || "Belum ditemukan"}
+                  </span>
+                </div>
+              )}
+
+              {/* ID - Format berbeda untuk ML dan game lain */}
               <div className="flex justify-between px-2 pb-2 text-xs text-black border-b border-gray-500/30 md:text-md">
                 <span>ID:</span>
                 <span className="font-semibold">
-                  {userId} ({zoneId})
+                  {gameName && gameName.toLowerCase() === "mobile legends"
+                    ? `${userId} (${zoneId})`
+                    : userId}
                 </span>
               </div>
+
               <div className="flex justify-between px-2 pb-2 text-xs text-black border-b border-gray-500/30 md:text-md">
                 <span>Harga:</span>
                 <span className="font-semibold">
