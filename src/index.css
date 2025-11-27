@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
-
 body {
   font-family: 'Poppins', sans-serif;
 }
@@ -12,11 +11,13 @@ body {
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   margin: 0;
 }
 
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 @keyframes fadeIn {
@@ -38,4 +39,37 @@ input[type="number"] {
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;             
+}
+
+/* Optimasi untuk Banner HD Image */
+.banner-image {
+  /* High-quality rendering untuk foto HD */
+  image-rendering: high-quality;
+  image-rendering: -webkit-optimize-contrast;
+  
+  /* Smooth anti-aliasing */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* GPU acceleration untuk performa smooth */
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+  
+  /* Prevent blur saat scaling */
+  -ms-interpolation-mode: bicubic;
+}
+
+/* Optimasi container banner untuk performa */
+.banner-container {
+  /* Hardware acceleration */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Smooth transition untuk slide banner */
+.banner-slide {
+  transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
 }
