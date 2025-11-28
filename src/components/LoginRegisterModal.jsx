@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { login, register } from "../services/authService";
 
@@ -16,6 +16,14 @@ export default function LoginRegisterModal({ show, close }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // ⭐ AUTO CLOSE JIKA USER SUDAH LOGIN
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser && show) {
+      close(); // otomatis tutup
+    }
+  }, [show, close]);
+
   if (!show) return null;
 
   const setField = (name, val) => {
@@ -26,13 +34,16 @@ export default function LoginRegisterModal({ show, close }) {
     let msg = "";
     if (name === "email") {
       if (!val.trim()) msg = "Email wajib diisi.";
-      else if (!emailRe.test(val)) msg = "Format email tidak valid. Pastikan menggunakan '@'.";
+      else if (!emailRe.test(val))
+        msg = "Format email tidak valid. Pastikan menggunakan '@'.";
     } else if (name === "password") {
       if (!val) msg = "Kata sandi wajib diisi.";
-      else if (val.length < minPw) msg = `Kata sandi minimal ${minPw} karakter.`;
+      else if (val.length < minPw)
+        msg = `Kata sandi minimal ${minPw} karakter.`;
     } else if (name === "username") {
       if (!val.trim()) msg = "Username wajib diisi.";
-      else if (!usernameRe.test(val)) msg = "Username hanya boleh huruf atau angka.";
+      else if (!usernameRe.test(val))
+        msg = "Username hanya boleh huruf atau angka.";
     }
     setErrors((e) => ({ ...e, [name]: msg }));
     return msg;
@@ -58,19 +69,30 @@ export default function LoginRegisterModal({ show, close }) {
     try {
       if (isLogin) {
         const response = await login(values.email, values.password);
-        
+
+        // SIMPAN TOKEN & ROLE
+        localStorage.setItem("token", response.access_token);
+        localStorage.setItem("role", response.user.role);
+        localStorage.setItem("user", JSON.stringify(response.user));
+
         Swal.fire({
           icon: "success",
           title: "Login berhasil",
-          text: `Selamat datang, ${response.user?.name || 'User'}!`,
+          text: `Selamat datang, ${response.user?.name || "User"}!`,
           confirmButtonColor: "#6366f1",
         }).then(() => {
           close?.();
-          window.location.href = '/';
+
+          // Redirect berdasarkan role
+          if (response.user?.role === "admin") {
+            window.location.href = "/admin/dashboard";
+          } else {
+            window.location.href = "/";
+          }
         });
       } else {
         await register(values.username, values.email, values.password);
-        
+
         Swal.fire({
           icon: "success",
           title: "Pendaftaran berhasil",
@@ -82,8 +104,9 @@ export default function LoginRegisterModal({ show, close }) {
         });
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message || "Terjadi kesalahan";
-      
+      const errorMsg =
+        error.response?.data?.message || error.message || "Terjadi kesalahan";
+
       Swal.fire({
         icon: "error",
         title: isLogin ? "Login gagal" : "Pendaftaran gagal",
@@ -102,7 +125,7 @@ export default function LoginRegisterModal({ show, close }) {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !loading) {
+    if (e.key === "Enter" && !loading) {
       handleSubmit();
     }
   };
@@ -115,7 +138,9 @@ export default function LoginRegisterModal({ show, close }) {
             <button
               onClick={() => setIsLogin(true)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
-                isLogin ? "bg-amber-500/20 text-amber-300" : "text-white/70 hover:text-white"
+                isLogin
+                  ? "bg-amber-500/20 text-amber-300"
+                  : "text-white/70 hover:text-white"
               }`}
             >
               Masuk
@@ -123,7 +148,9 @@ export default function LoginRegisterModal({ show, close }) {
             <button
               onClick={() => setIsLogin(false)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
-                !isLogin ? "bg-amber-500/20 text-amber-300" : "text-white/70 hover:text-white"
+                !isLogin
+                  ? "bg-amber-500/20 text-amber-300"
+                  : "text-white/70 hover:text-white"
               }`}
             >
               Daftar
@@ -132,7 +159,7 @@ export default function LoginRegisterModal({ show, close }) {
 
           <button
             onClick={close}
-            className="h-9 w-9 rounded-full grid place-items-center hover:bg-white/10 transition"
+            className="grid transition rounded-full h-9 w-9 place-items-center hover:bg-white/10"
             aria-label="Tutup"
           >
             ✕
@@ -143,10 +170,10 @@ export default function LoginRegisterModal({ show, close }) {
           <div className="md:w-[46%] w-full p-5 md:p-6">
             <div className="relative rounded-xl overflow-hidden ring-1 ring-white/10 bg-gradient-to-b from-[#3b2567] to-[#241a5b] min-h-[320px]">
               <div className="relative p-5 md:p-7">
-                <div className="inline-flex items-center gap-2 bg-amber-400/90 text-black font-semibold px-3 py-1 rounded-full text-xs">
+                <div className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold text-black rounded-full bg-amber-400/90">
                   Promo Spesial
                 </div>
-                <h3 className="mt-4 text-2xl md:text-3xl font-extrabold leading-tight">
+                <h3 className="mt-4 text-2xl font-extrabold leading-tight md:text-3xl">
                   Dapatkan bonus spesial saat mendaftar!
                 </h3>
 
@@ -169,14 +196,14 @@ export default function LoginRegisterModal({ show, close }) {
           </div>
 
           <div className="md:w-[54%] w-full p-5 md:p-8 border-t md:border-t-0 md:border-l border-white/10">
-            <h2 className="text-xl md:text-2xl font-semibold mb-5">
+            <h2 className="mb-5 text-xl font-semibold md:text-2xl">
               {isLogin ? "Masuk ke Akun" : "Daftar Akun Baru"}
             </h2>
 
             <div className="space-y-4">
               {!isLogin && (
                 <div>
-                  <label className="block text-sm mb-1">
+                  <label className="block mb-1 text-sm">
                     Username <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -186,18 +213,24 @@ export default function LoginRegisterModal({ show, close }) {
                     onBlur={(e) => validateField("username", e.target.value)}
                     onKeyPress={handleKeyPress}
                     className={`w-full rounded-lg bg-white text-black placeholder-gray-400 px-3 py-3 outline-none ring-1 focus:ring-2 transition ${
-                      errors.username ? "ring-red-400 focus:ring-red-400" : "ring-black/10 focus:ring-indigo-400"
+                      errors.username
+                        ? "ring-red-400 focus:ring-red-400"
+                        : "ring-black/10 focus:ring-indigo-400"
                     }`}
                     placeholder="mis. nabil123"
                     autoComplete="username"
                     disabled={loading}
                   />
-                  {errors.username && <p className="mt-1 text-xs text-red-400">{errors.username}</p>}
+                  {errors.username && (
+                    <p className="mt-1 text-xs text-red-400">
+                      {errors.username}
+                    </p>
+                  )}
                 </div>
               )}
 
               <div>
-                <label className="block text-sm mb-1">
+                <label className="block mb-1 text-sm">
                   Email <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -207,17 +240,21 @@ export default function LoginRegisterModal({ show, close }) {
                   onBlur={(e) => validateField("email", e.target.value)}
                   onKeyPress={handleKeyPress}
                   className={`w-full rounded-lg bg-white text-black placeholder-gray-400 px-3 py-3 outline-none ring-1 focus:ring-2 transition ${
-                    errors.email ? "ring-red-400 focus:ring-red-400" : "ring-black/10 focus:ring-indigo-400"
+                    errors.email
+                      ? "ring-red-400 focus:ring-red-400"
+                      : "ring-black/10 focus:ring-indigo-400"
                   }`}
                   placeholder="nama@email.com"
                   autoComplete="email"
                   disabled={loading}
                 />
-                {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-400">{errors.email}</p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm mb-1">
+                <label className="block mb-1 text-sm">
                   Kata Sandi <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -227,29 +264,33 @@ export default function LoginRegisterModal({ show, close }) {
                   onBlur={(e) => validateField("password", e.target.value)}
                   onKeyPress={handleKeyPress}
                   className={`w-full rounded-lg bg-white text-black placeholder-gray-400 px-3 py-3 outline-none ring-1 focus:ring-2 transition ${
-                    errors.password ? "ring-red-400 focus:ring-red-400" : "ring-black/10 focus:ring-indigo-400"
+                    errors.password
+                      ? "ring-red-400 focus:ring-red-400"
+                      : "ring-black/10 focus:ring-indigo-400"
                   }`}
                   placeholder={`Minimal ${minPw} karakter`}
                   autoComplete={isLogin ? "current-password" : "new-password"}
                   disabled={loading}
                 />
-                {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password}</p>}
+                {errors.password && (
+                  <p className="mt-1 text-xs text-red-400">{errors.password}</p>
+                )}
               </div>
 
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full mt-2 bg-amber-500 hover:bg-amber-400 disabled:bg-gray-500 disabled:cursor-not-allowed text-black font-semibold rounded-lg py-3 transition"
+                className="w-full py-3 mt-2 font-semibold text-black transition rounded-lg bg-amber-500 hover:bg-amber-400 disabled:bg-gray-500 disabled:cursor-not-allowed"
               >
                 {loading ? "Memproses..." : isLogin ? "Masuk" : "Daftar"}
               </button>
 
-              <p className="text-sm text-white/80 text-center mt-2">
+              <p className="mt-2 text-sm text-center text-white/80">
                 {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}{" "}
                 <button
                   onClick={switchMode}
                   disabled={loading}
-                  className="text-amber-300 hover:text-amber-200 underline underline-offset-4 disabled:opacity-50"
+                  className="underline text-amber-300 hover:text-amber-200 underline-offset-4 disabled:opacity-50"
                 >
                   {isLogin ? "Daftar sekarang" : "Masuk di sini"}
                 </button>

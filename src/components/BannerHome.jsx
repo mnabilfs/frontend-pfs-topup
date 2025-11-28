@@ -57,10 +57,10 @@ const BannerHome = () => {
     return (
       <div className="px-10 mt-6 md:px-16 md:mt-11">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-11">
-          <div className="md:col-span-2 col-span-1 h-40 md:h-96 bg-gray-700 rounded-lg animate-pulse"></div>
-          <div className="hidden sm:flex flex-col gap-4">
-            <div className="h-48 md:h-46 bg-gray-700 rounded-lg animate-pulse"></div>
-            <div className="h-48 md:h-46 bg-gray-700 rounded-lg animate-pulse"></div>
+          <div className="h-40 col-span-1 bg-gray-700 rounded-lg md:col-span-2 md:h-96 animate-pulse"></div>
+          <div className="flex-col hidden gap-4 sm:flex">
+            <div className="h-48 bg-gray-700 rounded-lg md:h-46 animate-pulse"></div>
+            <div className="h-48 bg-gray-700 rounded-lg md:h-46 animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@ const BannerHome = () => {
     return (
       <div className="px-10 mt-6 md:px-16 md:mt-11">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-11">
-          <div className="md:col-span-2 col-span-1 h-40 md:h-96 bg-gray-700 rounded-lg flex items-center justify-center">
+          <div className="flex items-center justify-center h-40 col-span-1 bg-gray-700 rounded-lg md:col-span-2 md:h-96">
             <p className="text-gray-400">Belum ada banner</p>
           </div>
         </div>
@@ -82,8 +82,8 @@ const BannerHome = () => {
   return (
     <div className="px-10 mt-6 md:px-16 md:mt-11">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-11">
-        <div className="relative md:col-span-2 col-span-1">
-          <div className="h-40 md:h-96 rounded-lg shadow-lg">
+        <div className="relative col-span-1 md:col-span-2">
+          <div className="h-40 rounded-lg shadow-lg md:h-96">
             <div className="relative w-full h-full overflow-hidden rounded-lg">
               {banners.map((banner, idx) => (
                 <div
@@ -98,7 +98,7 @@ const BannerHome = () => {
                     className="object-cover w-full h-full banner-image"
                     style={{
                       imageRendering: "-webkit-optimize-contrast",
-                      imageRendering: "crisp-edges",
+                      "crisp-edges": "crisp-edges"
                     }}
                     loading="eager"
                     decoding="sync"
@@ -111,7 +111,7 @@ const BannerHome = () => {
           <button
             onClick={prevSlide}
             aria-label="Previous slide"
-            className="absolute top-1/2 -translate-y-1/2 left-2 md:-left-6 p-1 md:p-2 transition-all duration-200 ease-in-out transform bg-white rounded-full shadow-lg cursor-pointer hover:bg-purple-700 hover:text-white hover:scale-110 active:bg-purple-800 pointer-events-auto"
+            className="absolute p-1 transition-all duration-200 ease-in-out transform -translate-y-1/2 bg-white rounded-full shadow-lg cursor-pointer pointer-events-auto top-1/2 left-2 md:-left-6 md:p-2 hover:bg-purple-700 hover:text-white hover:scale-110 active:bg-purple-800"
           >
             <HiChevronLeft className="w-5 h-5 text-gray-800 md:w-7 md:h-7" />
           </button>
@@ -119,12 +119,12 @@ const BannerHome = () => {
           <button
             onClick={nextSlide}
             aria-label="Next slide"
-            className="absolute top-1/2 -translate-y-1/2 right-2 md:-right-6 p-1 md:p-2 transition-all duration-200 ease-in-out transform bg-white rounded-full shadow-lg cursor-pointer hover:bg-purple-700 hover:text-white hover:scale-110 active:bg-purple-800 pointer-events-auto"
+            className="absolute p-1 transition-all duration-200 ease-in-out transform -translate-y-1/2 bg-white rounded-full shadow-lg cursor-pointer pointer-events-auto top-1/2 right-2 md:-right-6 md:p-2 hover:bg-purple-700 hover:text-white hover:scale-110 active:bg-purple-800"
           >
             <HiChevronRight className="w-5 h-5 text-gray-800 md:w-7 md:h-7" />
           </button>
 
-          <div className="absolute flex justify-center space-x-3 md:space-x-5 left-0 right-0 -bottom-4 md:-bottom-6">
+          <div className="absolute left-0 right-0 flex justify-center space-x-3 md:space-x-5 -bottom-4 md:-bottom-6">
             {banners.map((_, idx) => (
               <button
                 key={idx}
@@ -142,7 +142,7 @@ const BannerHome = () => {
 
         <div className="flex-col hidden gap-4 sm:block">
           <div className="flex flex-col gap-4">
-            <div className="relative w-full h-48 rounded-lg shadow-lg md:h-46 overflow-hidden">
+            <div className="relative w-full h-48 overflow-hidden rounded-lg shadow-lg md:h-46">
               {banners.map((banner, idx) => (
                 <div
                   key={banner.id}
@@ -159,7 +159,7 @@ const BannerHome = () => {
               ))}
             </div>
 
-            <div className="relative w-full h-48 rounded-lg shadow-lg md:h-46 overflow-hidden">
+            <div className="relative w-full h-48 overflow-hidden rounded-lg shadow-lg md:h-46">
               {banners.map((banner, idx) => (
                 <div
                   key={banner.id}

@@ -17,6 +17,7 @@ const ConsumeApi = () => {
 
   const handleLogin = async () => {
     try {
+      console.log("LOGIN DIKLIK");
       const res = await login(email, password);
       alert('✅ Login berhasil: ' + JSON.stringify(res));
     } catch (err) {
@@ -30,40 +31,40 @@ const ConsumeApi = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-indigo-600 mb-6">
+    <div className="flex items-center justify-center min-h-screen p-6 bg-gray-100">
+      <div className="w-full max-w-md p-8 bg-white shadow-lg rounded-2xl">
+        <h1 className="mb-6 text-3xl font-bold text-center text-indigo-600">
           🔐 React Vite + Laravel Auth
         </h1>
 
         {/* Register Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-3 text-gray-700">Register</h2>
+          <h2 className="mb-3 text-xl font-semibold text-gray-700">Register</h2>
           <div className="flex flex-col gap-3">
             <input
               type="text"
               placeholder="Name"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <button
               onClick={handleRegister}
-              className="bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-300"
+              className="py-2 text-white transition duration-300 bg-indigo-600 rounded-lg hover:bg-indigo-700"
             >
               Daftar
             </button>
@@ -72,25 +73,25 @@ const ConsumeApi = () => {
 
         {/* Login Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-3 text-gray-700">Login</h2>
+          <h2 className="mb-3 text-xl font-semibold text-gray-700">Login</h2>
           <div className="flex flex-col gap-3">
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="border rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
             <button
               onClick={handleLogin}
-              className="bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-300"
+              className="py-2 text-white transition duration-300 bg-green-600 rounded-lg hover:bg-green-700"
             >
               Masuk
             </button>
@@ -99,10 +100,10 @@ const ConsumeApi = () => {
 
         {/* Logout Section */}
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-3 text-gray-700">Logout</h2>
+          <h2 className="mb-3 text-xl font-semibold text-gray-700">Logout</h2>
           <button
             onClick={handleLogout}
-            className="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-300"
+            className="px-6 py-2 text-white transition duration-300 bg-red-600 rounded-lg hover:bg-red-700"
           >
             Keluar
           </button>
