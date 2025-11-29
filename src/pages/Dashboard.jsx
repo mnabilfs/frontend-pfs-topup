@@ -37,9 +37,9 @@ const EMPTY_PRODUCT_FORM = { game_id: "", name: "", price: "", image_url: "" };
 const apiCall = async (endpoint, method = "GET", data = null) => {
   const token = localStorage.getItem("token");
 
-  // if (!token) {
-  //   throw new Error("No authentication token found");
-  // }
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
 
   const options = {
     method,
@@ -113,7 +113,7 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-600 mb-1">
+      <label className="block mb-1 text-sm font-medium text-gray-600">
         {label}
       </label>
       <div className="flex gap-3">
@@ -123,7 +123,7 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
             placeholder="URL gambar atau upload file"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+            className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
           />
         </div>
         <label
@@ -147,9 +147,9 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
           <img
             src={preview}
             alt="Preview"
-            className="h-20 w-20 object-cover rounded border"
+            className="object-cover w-20 h-20 border rounded"
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="mt-1 text-xs text-gray-500">
             Ukuran: {(preview.length / 1024).toFixed(0)} KB
           </p>
         </div>
@@ -179,7 +179,7 @@ const SidebarLink = ({ text, Icon, name, activePage, setActivePage }) => {
 
 const Sidebar = ({ activePage, setActivePage }) => {
   return (
-    <div className="fixed top-0 left-0 w-64 h-screen bg-white shadow-lg z-20">
+    <div className="fixed top-0 left-0 z-20 w-64 h-screen bg-white shadow-lg">
       <div className="flex items-center justify-center h-20 border-b border-gray-200">
         <h1 className="text-xl font-bold text-purple-700">PFSStore_Admin</h1>
       </div>
@@ -220,23 +220,58 @@ const Sidebar = ({ activePage, setActivePage }) => {
 };
 
 const Header = ({ onLogout }) => {
+  // 🔥 UBAH: Gunakan state untuk auto-refresh
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+
+  // 🔥 TAMBAH: Listen untuk update user
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      setUser(JSON.parse(localStorage.getItem("user")));
+    };
+
+    window.addEventListener("userUpdated", handleUserUpdate);
+    window.addEventListener("storage", handleUserUpdate);
+
+    return () => {
+      window.removeEventListener("userUpdated", handleUserUpdate);
+      window.removeEventListener("storage", handleUserUpdate);
+    };
+  }, []);
+
+  // 🔥 DEFAULT AVATAR
+  const defaultAvatar = "https://freesvg.org/img/abstract-user-flat-4.png";
+
   return (
-    <header className="fixed top-0 left-64 right-0 h-20 bg-white border-b border-gray-200 z-10">
+    <header className="fixed top-0 right-0 z-10 h-20 bg-white border-b border-gray-200 left-64">
       <div className="flex items-center justify-between h-full px-8">
         <div className="relative">
-          <HiOutlineSearch className="w-5 h-5 text-gray-400 absolute top-1/2 left-3 -translate-y-1/2" />
+          <HiOutlineSearch className="absolute w-5 h-5 text-gray-400 -translate-y-1/2 top-1/2 left-3" />
           <input
             type="text"
             placeholder="Search..."
-            className="w-96 pl-10 pr-4 py-2 bg-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="py-2 pl-10 pr-4 text-sm bg-gray-100 rounded-lg w-96 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
         <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-gray-700">Admin</span>
-          <HiOutlineUserCircle className="w-10 h-10 text-gray-400" />
+          <span className="text-sm font-medium text-gray-700">
+            {user?.name || "Admin"}
+          </span>
+
+          {/* 🔥 GANTI ICON DENGAN AVATAR */}
+          <div className="flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-200 rounded-full">
+            <img
+              src={user?.avatar || defaultAvatar}
+              alt="User Avatar"
+              className="object-cover w-full h-full"
+              onError={(e) => {
+                e.target.src = defaultAvatar;
+              }}
+            />
+          </div>
+
           <button
             onClick={onLogout}
-            className="ml-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
+            className="px-4 py-2 ml-4 text-white transition-all bg-red-500 rounded-lg cursor-pointer hover:bg-red-600"
           >
             Logout
           </button>
@@ -266,15 +301,15 @@ const Dashboard = () => {
     is_active: true,
   });
 
-  // // Check authentication
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   if (!token) {
-  //     alert("Anda harus login terlebih dahulu!");
-  //     navigate("/login");
-  //     return;
-  //   }
-  // }, [navigate]);
+  // Check authentication
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Anda harus login terlebih dahulu!");
+      navigate("/login");
+      return;
+    }
+  }, [navigate]);
 
   // Load data dari API saat pertama kali
   useEffect(() => {
@@ -450,6 +485,8 @@ const Dashboard = () => {
       }
 
       await loadBanners();
+      console.log("TOKEN DI LOCALSTORAGE:", localStorage.getItem("token"));
+
       handleCancelEdit();
     } catch (error) {
       console.error("Error saving banner:", error);
@@ -487,20 +524,16 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await apiCall("/logout", "POST");
-      localStorage.removeItem("token");
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      localStorage.removeItem("token");
-      navigate("/login");
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+
+    window.location.href = "/";
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="min-h-screen bg-gray-100">
       <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
       <div className="ml-64">
@@ -509,15 +542,15 @@ const Dashboard = () => {
         <main className="pt-20">
           <div className="p-8">
             {error && (
-              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              <div className="p-4 mb-4 text-red-700 bg-red-100 border border-red-400 rounded">
                 {error}
               </div>
             )}
 
             {loading && (
-              <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
                 <div className="text-center text-white">
-                  <div className="w-28 h-28 mx-auto mb-8 border-t-8 border-b-8 border-purple-600 rounded-full animate-spin"></div>
+                  <div className="mx-auto mb-8 border-t-8 border-b-8 border-purple-600 rounded-full w-28 h-28 animate-spin"></div>
                   <p className="text-2xl text-gray-400">Memproses</p>
                 </div>
               </div>
@@ -525,12 +558,12 @@ const Dashboard = () => {
 
             {activePage === "games" && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                <h2 className="mb-6 text-2xl font-bold text-gray-800">
                   Kelola Game
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                   <div className="lg:col-span-2">
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
+                    <div className="p-6 space-y-4 bg-white rounded-lg shadow-md">
                       <h3 className="text-lg font-semibold text-gray-700">
                         {editingType === "game"
                           ? `Edit Game: ${gameForm.name}`
@@ -538,7 +571,7 @@ const Dashboard = () => {
                       </h3>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
                           Nama Game
                         </label>
                         <input
@@ -548,12 +581,12 @@ const Dashboard = () => {
                           onChange={(e) =>
                             setGameForm({ ...gameForm, name: e.target.value })
                           }
-                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
                           Publisher
                         </label>
                         <input
@@ -566,7 +599,7 @@ const Dashboard = () => {
                               publisher: e.target.value,
                             })
                           }
-                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                         />
                       </div>
 
@@ -588,12 +621,12 @@ const Dashboard = () => {
                         preview={gameForm.banner_url}
                       />
 
-                      <div className="flex justify-end pt-2 gap-3">
+                      <div className="flex justify-end gap-3 pt-2">
                         {editingType === "game" && (
                           <button
                             onClick={handleCancelEdit}
                             disabled={loading}
-                            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 font-semibold text-gray-700 transition-all bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
                           >
                             <HiOutlineX className="w-5 h-5" />
                             Batal
@@ -602,7 +635,7 @@ const Dashboard = () => {
                         <button
                           onClick={handleGameSubmit}
                           disabled={loading}
-                          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 font-semibold text-white transition-all bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
                         >
                           {editingType === "game" ? (
                             <HiOutlinePencil className="w-5 h-5" />
@@ -618,14 +651,14 @@ const Dashboard = () => {
                   </div>
 
                   <div className="lg:col-span-1">
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="overflow-hidden bg-white rounded-lg shadow-md">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Game
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Aksi
                             </th>
                           </tr>
@@ -645,7 +678,7 @@ const Dashboard = () => {
                                   <img
                                     src={game.image_url}
                                     alt=""
-                                    className="w-10 h-10 object-cover rounded"
+                                    className="object-cover w-10 h-10 rounded"
                                   />
                                   <div>
                                     <div className="text-sm font-medium text-gray-900">
@@ -678,7 +711,7 @@ const Dashboard = () => {
                         </tbody>
                       </table>
                       {games.length === 0 && (
-                        <p className="text-center text-sm text-gray-500 p-6">
+                        <p className="p-6 text-sm text-center text-gray-500">
                           Belum ada game. Tambahkan game pertama Anda!
                         </p>
                       )}
@@ -690,12 +723,12 @@ const Dashboard = () => {
 
             {activePage === "prices" && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                <h2 className="mb-6 text-2xl font-bold text-gray-800">
                   Kelola Harga
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                   <div className="lg:col-span-1">
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-4 sticky top-28">
+                    <div className="sticky p-6 space-y-4 bg-white rounded-lg shadow-md top-28">
                       <h3 className="text-lg font-semibold text-gray-700">
                         {editingType === "product"
                           ? `Edit Item: ${productForm.name}`
@@ -703,7 +736,7 @@ const Dashboard = () => {
                       </h3>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
                           Pilih Game
                         </label>
                         <select
@@ -716,7 +749,7 @@ const Dashboard = () => {
                               game_id: e.target.value,
                             });
                           }}
-                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100"
                         >
                           {games.length === 0 && (
                             <option value="">Belum ada game</option>
@@ -730,7 +763,7 @@ const Dashboard = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
                           Nama Item
                         </label>
                         <input
@@ -743,12 +776,12 @@ const Dashboard = () => {
                               name: e.target.value,
                             })
                           }
-                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
                           Harga (Rp)
                         </label>
                         <input
@@ -761,7 +794,7 @@ const Dashboard = () => {
                               price: e.target.value,
                             })
                           }
-                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                         />
                       </div>
 
@@ -774,12 +807,12 @@ const Dashboard = () => {
                         preview={productForm.image_url}
                       />
 
-                      <div className="flex justify-end pt-2 gap-3">
+                      <div className="flex justify-end gap-3 pt-2">
                         {editingType === "product" && (
                           <button
                             onClick={handleCancelEdit}
                             disabled={loading}
-                            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 font-semibold text-gray-700 transition-all bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
                           >
                             <HiOutlineX className="w-5 h-5" />
                             Batal
@@ -788,7 +821,7 @@ const Dashboard = () => {
                         <button
                           onClick={handleProductSubmit}
                           disabled={loading || games.length === 0}
-                          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 font-semibold text-white transition-all bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
                         >
                           {editingType === "product" ? (
                             <HiOutlinePencil className="w-5 h-5" />
@@ -804,17 +837,17 @@ const Dashboard = () => {
                   </div>
 
                   <div className="lg:col-span-2">
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="overflow-hidden bg-white rounded-lg shadow-md">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Nama Item
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Harga
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Aksi
                             </th>
                           </tr>
@@ -843,7 +876,7 @@ const Dashboard = () => {
                                         "https://www.transparentpng.com/thumb/diamond/O3UOts-diamond-best-png.png"
                                       }
                                       alt=""
-                                      className="w-8 h-8 object-contain"
+                                      className="object-contain w-8 h-8"
                                     />
                                     <span className="text-sm font-medium text-gray-900">
                                       {product.name}
@@ -882,7 +915,7 @@ const Dashboard = () => {
                       {products.filter(
                         (p) => p.game_id === parseInt(selectedGameForPrices)
                       ).length === 0 && (
-                        <p className="text-center text-sm text-gray-500 p-6">
+                        <p className="p-6 text-sm text-center text-gray-500">
                           Belum ada data harga untuk game ini.
                         </p>
                       )}
@@ -894,13 +927,13 @@ const Dashboard = () => {
 
             {activePage === "banners" && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                <h2 className="mb-6 text-2xl font-bold text-gray-800">
                   Kelola Banner
                 </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                   {/* FORM TAMBAH/EDIT BANNER */}
                   <div className="lg:col-span-1">
-                    <div className="bg-white p-6 rounded-lg shadow-md space-y-4 sticky top-28">
+                    <div className="sticky p-6 space-y-4 bg-white rounded-lg shadow-md top-28">
                       <h3 className="text-lg font-semibold text-gray-700">
                         {editingType === "banner"
                           ? `Edit Banner: ${bannerForm.title || "Tanpa Judul"}`
@@ -908,7 +941,7 @@ const Dashboard = () => {
                       </h3>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
                           Judul Banner (Opsional)
                         </label>
                         <input
@@ -921,7 +954,7 @@ const Dashboard = () => {
                               title: e.target.value,
                             })
                           }
-                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                         />
                       </div>
 
@@ -935,7 +968,7 @@ const Dashboard = () => {
                       />
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
                           Urutan Tampil
                         </label>
                         <input
@@ -948,9 +981,9 @@ const Dashboard = () => {
                               order: e.target.value,
                             })
                           }
-                          className="block w-full text-sm rounded-md border border-gray-300 px-3 py-2 focus:ring-purple-500 focus:border-purple-500"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="mt-1 text-xs text-gray-500">
                           Semakin kecil angka, semakin depan urutannya
                         </p>
                       </div>
@@ -976,12 +1009,12 @@ const Dashboard = () => {
                         </label>
                       </div>
 
-                      <div className="flex justify-end pt-2 gap-3">
+                      <div className="flex justify-end gap-3 pt-2">
                         {editingType === "banner" && (
                           <button
                             onClick={handleCancelEdit}
                             disabled={loading}
-                            className="flex items-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 font-semibold text-gray-700 transition-all bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
                           >
                             <HiOutlineX className="w-5 h-5" />
                             Batal
@@ -990,7 +1023,7 @@ const Dashboard = () => {
                         <button
                           onClick={handleBannerSubmit}
                           disabled={loading}
-                          className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 font-semibold text-white transition-all bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
                         >
                           {editingType === "banner" ? (
                             <HiOutlinePencil className="w-5 h-5" />
@@ -1007,23 +1040,23 @@ const Dashboard = () => {
 
                   {/* TABEL DAFTAR BANNER */}
                   <div className="lg:col-span-2">
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="overflow-hidden bg-white rounded-lg shadow-md">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Preview
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Judul
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Urutan
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Status
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
                               Aksi
                             </th>
                           </tr>
@@ -1043,7 +1076,7 @@ const Dashboard = () => {
                                 <img
                                   src={banner.image_url}
                                   alt={banner.title}
-                                  className="w-20 h-12 object-cover rounded"
+                                  className="object-cover w-20 h-12 rounded"
                                 />
                               </td>
                               <td className="px-4 py-3">
@@ -1092,7 +1125,7 @@ const Dashboard = () => {
                         </tbody>
                       </table>
                       {banners.length === 0 && (
-                        <p className="text-center text-sm text-gray-500 p-6">
+                        <p className="p-6 text-sm text-center text-gray-500">
                           Belum ada banner. Tambahkan banner pertama Anda!
                         </p>
                       )}
