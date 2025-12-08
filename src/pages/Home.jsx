@@ -72,16 +72,18 @@ const Home = () => {
                   key={game.id}
                   className="flex justify-center col-span-1"
                 >
-                  <div className="overflow-hidden bg-purple-900 border-white rounded-lg cursor-pointer border-1 h-37 md:h-50 w-28 md:w-40 hover:scale-105 transition-transform">
-                    <img
-                      src={game.image_url}
-                      alt={game.name}
-                      className="object-cover w-full h-auto"
-                    />
-                    <div className="px-2 py-2 text-center">
-                      <span className="text-white text-[.70rem] md:text-sm font-semibold font-Poppins">
-                        {game.name}
-                      </span>
+                  <div className="game-card-wrapper relative h-37 md:h-50 w-28 md:w-40">
+                    <div className="overflow-hidden bg-purple-900 rounded-lg cursor-pointer h-full w-full hover:scale-105 transition-transform relative z-10">
+                      <img
+                        src={game.image_url}
+                        alt={game.name}
+                        className="object-cover w-full h-auto"
+                      />
+                      <div className="px-2 py-2 text-center">
+                        <span className="text-white text-[.70rem] md:text-sm font-semibold font-Poppins">
+                          {game.name}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </Link>

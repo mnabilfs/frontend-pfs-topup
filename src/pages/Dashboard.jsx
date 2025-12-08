@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { generateSecureLink, ROUTE_IDS } from "../utils/urlEncryptor";
 import { useNavigate } from "react-router-dom";
+import MusicManager from "../components/MusicManager";
+import "../style/bat-animation.css";
+import { HiMusicalNote } from "react-icons/hi2";
 import {
   HiOutlineHome,
   HiOutlineCube,
@@ -89,7 +93,7 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
       return;
     }
 
-    // Maksimal 5MB
+    // Maksimal 10MB
     if (file.size > 10 * 1024 * 1024) {
       alert("Ukuran file maksimal 10MB!");
       return;
@@ -200,8 +204,15 @@ const Sidebar = ({ activePage, setActivePage }) => {
         />
         <SidebarLink
           text="Kelola Banner"
-          Icon={HiOutlinePhotograph} // import dari react-icons/hi
+          Icon={HiOutlinePhotograph}
           name="banners"
+          activePage={activePage}
+          setActivePage={setActivePage}
+        />
+        <SidebarLink
+          text="Kelola Musik"
+          Icon={HiMusicalNote}
+          name="music"
           activePage={activePage}
           setActivePage={setActivePage}
         />
@@ -548,10 +559,9 @@ const Dashboard = () => {
             )}
 
             {loading && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-                <div className="text-center text-white">
-                  <div className="mx-auto mb-8 border-t-8 border-b-8 border-purple-600 rounded-full w-28 h-28 animate-spin"></div>
-                  <p className="text-2xl text-gray-400">Memproses</p>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
+                <div className="bat-loader-container">
+                  <div className="bat"></div>
                 </div>
               </div>
             )}
@@ -1132,6 +1142,14 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+            {activePage === "music" && (
+              <div>
+                <h2 className="mb-6 text-2xl font-bold text-gray-800">
+                  Kelola Background Music
+                </h2>
+                <MusicManager />
               </div>
             )}
           </div>

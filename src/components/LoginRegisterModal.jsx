@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { login, register } from "../services/authService";
+import { generateSecureLink, ROUTE_IDS } from "../utils/urlEncryptor";
 
 const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const usernameRe = /^[A-Za-z0-9]+$/;
@@ -16,11 +17,10 @@ export default function LoginRegisterModal({ show, close }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // ⭐ AUTO CLOSE JIKA USER SUDAH LOGIN
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser && show) {
-      close(); // otomatis tutup
+      close();
     }
   }, [show, close]);
 
@@ -70,7 +70,6 @@ export default function LoginRegisterModal({ show, close }) {
       if (isLogin) {
         const response = await login(values.email, values.password);
 
-        // SIMPAN TOKEN & ROLE
         localStorage.setItem("token", response.access_token);
         localStorage.setItem("role", response.user.role);
         localStorage.setItem("user", JSON.stringify(response.user));
@@ -83,9 +82,10 @@ export default function LoginRegisterModal({ show, close }) {
         }).then(() => {
           close?.();
 
-          // Redirect berdasarkan role
+          // 🔐 REDIRECT KE SECURE URL
           if (response.user?.role === "admin") {
-            window.location.href = "/admin/dashboard";
+            const secureUrl = generateSecureLink(ROUTE_IDS.ADMIN_DASHBOARD);
+            window.location.href = secureUrl;
           } else {
             window.location.href = "/";
           }
