@@ -216,6 +216,13 @@ const Sidebar = ({ activePage, setActivePage }) => {
           activePage={activePage}
           setActivePage={setActivePage}
         />
+        <SidebarLink
+          text="Kelola Akun"
+          Icon={HiOutlineUserCircle}
+          name="sold-accounts"
+          activePage={activePage}
+          setActivePage={setActivePage}
+        />
         <div className="pt-4 border-t border-gray-200">
           <a
             href="/"
@@ -305,11 +312,22 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [banners, setBanners] = useState([]);
+  const [soldAccounts, setSoldAccounts] = useState([]);
   const [bannerForm, setBannerForm] = useState({
     title: "",
     image_url: "",
     order: 0,
     is_active: true,
+  });
+  const [soldAccountForm, setSoldAccountForm] = useState({
+    title: "",
+    description: "",
+    price: "",
+    image_url: "",
+    gallery: [],
+    order: 0,
+    is_active: true,
+    imageFile: null,
   });
 
   // Check authentication
@@ -327,6 +345,7 @@ const Dashboard = () => {
     loadGames();
     loadProducts();
     loadBanners();
+    loadSoldAccounts();
   }, []);
 
   useEffect(() => {
@@ -376,6 +395,20 @@ const Dashboard = () => {
     }
   };
 
+const loadSoldAccounts = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    const data = await apiCall("/sold-accounts");
+    setSoldAccounts(data);
+  } catch (error) {
+    console.error("Error loading sold accounts:", error);
+    setError("Gagal memuat data akun: " + error.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
   const handleEditClick = (type, item) => {
     setEditingId(item.id);
     setEditingType(type);
@@ -390,6 +423,9 @@ const Dashboard = () => {
     } else if (type === "banner") {
       setBannerForm(item);
       setActivePage("banners");
+    } else if (type === "sold-account") {
+      setSoldAccountForm(item);
+      setActivePage("sold-accounts");
     }
   };
 
@@ -399,6 +435,15 @@ const Dashboard = () => {
     setGameForm(EMPTY_GAME_FORM);
     setProductForm({ ...EMPTY_PRODUCT_FORM, game_id: selectedGameForPrices });
     setBannerForm({ title: "", image_url: "", order: 0, is_active: true });
+    setSoldAccountForm({
+      title: "",
+      description: "",
+      price: "",
+      image_url: "",
+      gallery: [],
+      order: 0,
+      is_active: true,
+    });
   };
 
   const handleGameSubmit = async () => {
@@ -507,6 +552,95 @@ const Dashboard = () => {
     }
   };
 
+  const handleSoldAccountSubmit = async () => {
+    // Validasi
+    if (
+      !soldAccountForm.title ||
+      !soldAccountForm.price ||
+      !soldAccountForm.image_url
+    ) {
+      alert("Judul, Harga, dan Gambar wajib diisi!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Prepare data
+      const accountData = {
+        title: soldAccountForm.title.trim(),
+        description: soldAccountForm.description?.trim() || "",
+        price: parseInt(soldAccountForm.price),
+        image_url: soldAccountForm.image_url.trim(),
+        gallery: Array.isArray(soldAccountForm.gallery)
+          ? soldAccountForm.gallery
+          : [],
+        order: parseInt(soldAccountForm.order) || 0,
+        is_active: soldAccountForm.is_active ? true : false,
+      };
+
+      console.log("📤 Submitting account data:", accountData);
+
+      // Determine endpoint
+      let endpoint = "/sold-accounts";
+      let method = "POST";
+
+      if (editingType === "sold-account" && editingId) {
+        endpoint = `/sold-accounts/${editingId}`;
+        method = "PUT";
+      }
+
+      console.log(`📡 ${method} ${API_URL}${endpoint}`);
+
+      // Make request
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(accountData),
+      });
+
+      console.log("📡 Response status:", response.status);
+
+      // Handle response
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Error response:", errorText);
+
+        let errorMessage = `HTTP ${response.status}`;
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorText;
+        } catch (e) {
+          errorMessage = errorText;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      console.log("✅ Success:", result);
+
+      // Reload data
+      await loadSoldAccounts();
+
+      // Reset form
+      handleCancelEdit();
+
+      alert("✅ Akun berhasil disimpan!");
+    } catch (error) {
+      console.error("❌ Submit error:", error);
+      setError(error.message);
+      alert(`❌ Gagal menyimpan akun:\n${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (type, id) => {
     if (!window.confirm("Yakin ingin menghapus data ini?")) return;
 
@@ -523,8 +657,11 @@ const Dashboard = () => {
       } else if (type === "banners") {
         await apiCall(`/banners/${id}`, "DELETE");
         await loadBanners();
+      } else if (type === "sold-accounts") {
+        // TAMBAH INI
+        await apiCall(`/sold-accounts/${id}`, "DELETE");
+        await loadSoldAccounts();
       }
-
       handleCancelEdit();
       alert("Data berhasil dihapus!");
     } catch (error) {
@@ -1150,6 +1287,255 @@ const Dashboard = () => {
                   Kelola Background Music
                 </h2>
                 <MusicManager />
+              </div>
+            )}
+            {activePage === "sold-accounts" && (
+              <div>
+                <h2 className="mb-6 text-2xl font-bold text-gray-800">
+                  Kelola Akun yang Dijual
+                </h2>
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                  {/* FORM TAMBAH/EDIT AKUN */}
+                  <div className="lg:col-span-1">
+                    <div className="sticky p-6 space-y-4 bg-white rounded-lg shadow-md top-28 max-h-[calc(100vh-8rem)] overflow-y-auto">
+                      <h3 className="text-lg font-semibold text-gray-700">
+                        {editingType === "sold-account"
+                          ? `Edit Akun: ${soldAccountForm.title}`
+                          : "Tambah Akun Baru"}
+                      </h3>
+
+                      <div>
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
+                          Judul Akun
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Cth: Akun ML Epic 500 Skin"
+                          value={soldAccountForm.title}
+                          onChange={(e) =>
+                            setSoldAccountForm({
+                              ...soldAccountForm,
+                              title: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
+                          Deskripsi
+                        </label>
+                        <textarea
+                          placeholder="Deskripsi lengkap akun..."
+                          value={soldAccountForm.description}
+                          onChange={(e) =>
+                            setSoldAccountForm({
+                              ...soldAccountForm,
+                              description: e.target.value,
+                            })
+                          }
+                          rows="4"
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
+                          Harga (Rp)
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="Cth: 500000"
+                          value={soldAccountForm.price}
+                          onChange={(e) =>
+                            setSoldAccountForm({
+                              ...soldAccountForm,
+                              price: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+
+                      <ImageUpload
+                        label="Gambar Utama"
+                        value={soldAccountForm.image_url}
+                        onChange={(val) =>
+                          setSoldAccountForm({
+                            ...soldAccountForm,
+                            image_url: val,
+                          })
+                        }
+                        preview={soldAccountForm.image_url}
+                      />
+
+                      <div>
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
+                          Urutan Tampil
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={soldAccountForm.order}
+                          onChange={(e) =>
+                            setSoldAccountForm({
+                              ...soldAccountForm,
+                              order: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="account-active"
+                          checked={soldAccountForm.is_active}
+                          onChange={(e) =>
+                            setSoldAccountForm({
+                              ...soldAccountForm,
+                              is_active: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <label
+                          htmlFor="account-active"
+                          className="ml-2 text-sm font-medium text-gray-700"
+                        >
+                          Aktif (Tampilkan di Home)
+                        </label>
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-2">
+                        {editingType === "sold-account" && (
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-4 py-2 font-semibold text-gray-700 transition-all bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+                          >
+                            <HiOutlineX className="w-5 h-5" />
+                            Batal
+                          </button>
+                        )}
+                        <button
+                          onClick={handleSoldAccountSubmit}
+                          disabled={loading}
+                          className="flex items-center gap-2 px-4 py-2 font-semibold text-white transition-all bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                        >
+                          {editingType === "sold-account" ? (
+                            <HiOutlinePencil className="w-5 h-5" />
+                          ) : (
+                            <HiOutlinePlus className="w-5 h-5" />
+                          )}
+                          {editingType === "sold-account"
+                            ? "Update Akun"
+                            : "Simpan Akun"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TABEL DAFTAR AKUN */}
+                  <div className="lg:col-span-2">
+                    <div className="overflow-hidden bg-white rounded-lg shadow-md">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Preview
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Judul
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Harga
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Status
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Aksi
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {soldAccounts.map((account) => (
+                            <tr
+                              key={account.id}
+                              className={`hover:bg-gray-50 ${
+                                editingId === account.id &&
+                                editingType === "sold-account"
+                                  ? "bg-purple-50"
+                                  : ""
+                              }`}
+                            >
+                              <td className="px-4 py-3">
+                                <img
+                                  src={account.image_url}
+                                  alt={account.title}
+                                  className="object-cover w-20 h-12 rounded"
+                                />
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {account.title}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {account.description?.substring(0, 50)}...
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm font-semibold text-gray-700">
+                                  {formatRupiah(account.price)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                {account.is_active ? (
+                                  <span className="px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+                                    Aktif
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">
+                                    Nonaktif
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 space-x-2">
+                                <button
+                                  onClick={() =>
+                                    handleEditClick("sold-account", account)
+                                  }
+                                  disabled={loading}
+                                  className="p-1.5 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 disabled:opacity-50"
+                                >
+                                  <HiOutlinePencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDelete("sold-accounts", account.id)
+                                  }
+                                  disabled={loading}
+                                  className="p-1.5 bg-red-100 text-red-600 rounded-md hover:bg-red-200 disabled:opacity-50"
+                                >
+                                  <HiOutlineTrash className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {soldAccounts.length === 0 && (
+                        <p className="p-6 text-sm text-center text-gray-500">
+                          Belum ada akun yang dijual. Tambahkan akun pertama
+                          Anda!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

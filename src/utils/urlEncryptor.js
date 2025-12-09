@@ -5,6 +5,7 @@ const SECRET_KEY = "PFS_STORE_2024_SECRET_KEY_ULTRA_SECURE";
 export const ROUTE_IDS = {
   ADMIN_DASHBOARD: "admin_dash_v1_secure",
   USER_PROFILE: "user_prof_v1_secure",
+  ACCOUNT_DETAIL: "account-detail",
   // Tambahkan route lain di sini jika perlu
 };
 

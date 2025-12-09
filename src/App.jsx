@@ -1,6 +1,12 @@
 // frontend-pfs-topup\src\App.jsx
 import React, { useState } from "react";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import Navbar from "./components/NavBar";
 import Home from "./pages/Home";
 import TopupPage from "./pages/TopupPage";
@@ -49,11 +55,11 @@ const SecureRouteHandler = ({ actualRouteId }) => {
  */
 const RedirectToSecure = ({ routeIdentifier }) => {
   const secureUrl = `/s/${encryptPath(routeIdentifier)}`;
-  
+
   React.useEffect(() => {
     window.location.replace(secureUrl);
   }, [secureUrl]);
-  
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
       <div className="bat-loader-container">
@@ -88,34 +94,40 @@ const AppLayout = () => {
         <Route path="/login" element={<Home openLoginModal />} />
         <Route path="/register" element={<Home openRegisterModal />} />
         <Route path="/topup/:gameId" element={<TopupPage />} />
-        <Route path="account_ml" element={<Account_ml />} />
+        <Route path="/account_ml" element={<Account_ml />} />
         <Route path="consume_api" element={<ConsumeApi />} />
         <Route path="/payment/success/:orderId" element={<PaymentSuccess />} />
 
         {/* 🔐 SECURE ROUTE - Encrypted URL Handler */}
-        <Route 
-          path="/s/:encryptedPath" 
+        <Route
+          path="/s/:encryptedPath"
           element={
             <SecureRoute>
               <SecureRouteHandler />
             </SecureRoute>
-          } 
+          }
         />
 
         {/* 🚫 BLOCKED ROUTES - Direct Access Protection */}
-        <Route 
-          path="/admin/*" 
-          element={<RedirectToSecure routeIdentifier={ROUTE_IDS.ADMIN_DASHBOARD} />} 
-        />
-        
-        <Route 
-          path="/profile" 
-          element={<RedirectToSecure routeIdentifier={ROUTE_IDS.USER_PROFILE} />} 
+        <Route
+          path="/admin/*"
+          element={
+            <RedirectToSecure routeIdentifier={ROUTE_IDS.ADMIN_DASHBOARD} />
+          }
         />
 
-        <Route 
-          path="/dashboard" 
-          element={<RedirectToSecure routeIdentifier={ROUTE_IDS.ADMIN_DASHBOARD} />} 
+        <Route
+          path="/profile"
+          element={
+            <RedirectToSecure routeIdentifier={ROUTE_IDS.USER_PROFILE} />
+          }
+        />
+
+        <Route
+          path="/dashboard"
+          element={
+            <RedirectToSecure routeIdentifier={ROUTE_IDS.ADMIN_DASHBOARD} />
+          }
         />
 
         {/* ❌ 404 Not Found */}
@@ -124,7 +136,7 @@ const AppLayout = () => {
 
       {/* Login/Register Modal */}
       <LoginRegisterModal show={showModal} close={closeModal} />
-      
+
       <GlobalAudioPlayer />
     </>
   );

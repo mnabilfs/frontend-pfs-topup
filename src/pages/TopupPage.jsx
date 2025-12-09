@@ -290,10 +290,9 @@ const TopupPage = () => {
   // Loading state
   if (isLoading || !gameDetails) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-800">
-        <div className="text-center text-white">
-          <div className="w-28 h-28 mx-auto mb-8 border-t-8 border-b-8 border-purple-600 rounded-full animate-spin"></div>
-          <p className="text-2xl text-gray-400">Memproses</p>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
+        <div className="bat-loader-container">
+          <div className="bat"></div>
         </div>
       </div>
     );
