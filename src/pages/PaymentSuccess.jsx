@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, Button } from "flowbite-react";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/NavBar";
 import { useNavigate } from "react-router-dom";
 import FooterPaymentSuccess from "../components/FooterPaymentSuccess";
 import {
@@ -45,9 +45,7 @@ const PaymentSuccess = () => {
   useEffect(() => {
     const fetchTransaction = async () => {
       try {
-        const response = await fetch(
-          `/api/payment/status/${orderId}`
-        );
+        const response = await fetch(`/api/payment/status/${orderId}`);
         const result = await response.json();
         setTransactionData(result.data);
         console.log("✅ Data transaksi:", result.data);
