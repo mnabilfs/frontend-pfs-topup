@@ -3,7 +3,7 @@ import API from "./api";
 // REGISTER
 export const register = async (username, email, password) => {
   try {
-    const response = await API.post("/register", {
+    const response = await API.post("api/register", {
       name: username,
       email,
       password,
@@ -30,7 +30,7 @@ export const register = async (username, email, password) => {
 export const login = async (email, password) => {
   console.log("LOGIN() DIJALANKAN");
   try {
-    const response = await API.post("/login", { email, password });
+    const response = await API.post("api/login", { email, password });
     console.log("LOGIN RESPONSE:", response.data);
 
     // Pastikan gunakan access_token
@@ -62,7 +62,7 @@ export const login = async (email, password) => {
 // Ambil user yang sedang login
 export const getCurrentUser = async () => {
   try {
-    const response = await API.get("/user");
+    const response = await API.get("api/user");
     return response.data;
   } catch (error) {
     console.error(
@@ -76,7 +76,7 @@ export const getCurrentUser = async () => {
 // LOGOUT
 export const logout = async () => {
   try {
-    await API.post("/logout");
+    await API.post("api/logout");
   } catch (error) {
     console.error(error.response?.data || error.message);
   } finally {
