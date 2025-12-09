@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { HiVolumeUp, HiVolumeOff, HiPlay, HiPause } from "react-icons/hi";
+import { API_BASE_URL } from "../services/api.js";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = `${API_BASE_URL}/api`;
 
 const GlobalAudioPlayer = () => {
   const [music, setMusic] = useState(null);
@@ -110,12 +111,12 @@ const GlobalAudioPlayer = () => {
           isMinimized ? "scale-75" : "scale-100"
         }`}
       >
-        <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-2xl shadow-2xl border border-purple-600/50 backdrop-blur-sm">
+        <div className="border shadow-2xl bg-gradient-to-br from-purple-900 to-purple-800 rounded-2xl border-purple-600/50 backdrop-blur-sm">
           {/* Main Player */}
           <div className={`p-4 ${isMinimized ? "hidden" : "block"}`}>
             <div className="flex items-center gap-4 min-w-[280px]">
               {/* Album Art Placeholder */}
-              <div className="w-14 h-14 bg-purple-700 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="flex items-center justify-center flex-shrink-0 bg-purple-700 w-14 h-14 rounded-xl">
                 <svg
                   className="w-8 h-8 text-purple-300"
                   fill="currentColor"
@@ -141,7 +142,7 @@ const GlobalAudioPlayer = () => {
                   {/* Play/Pause Button */}
                   <button
                     onClick={togglePlay}
-                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-purple-100 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 transition-colors bg-white rounded-full hover:bg-purple-100"
                     aria-label={isPlaying ? "Pause" : "Play"}
                   >
                     {isPlaying ? (
@@ -154,7 +155,7 @@ const GlobalAudioPlayer = () => {
                   {/* Volume Control */}
                   <button
                     onClick={toggleMute}
-                    className="text-white hover:text-purple-300 transition-colors"
+                    className="text-white transition-colors hover:text-purple-300"
                     aria-label={isMuted ? "Unmute" : "Mute"}
                   >
                     {isMuted ? (
@@ -185,7 +186,7 @@ const GlobalAudioPlayer = () => {
               {/* Minimize Button */}
               <button
                 onClick={() => setIsMinimized(true)}
-                className="text-purple-300 hover:text-white transition-colors self-start"
+                className="self-start text-purple-300 transition-colors hover:text-white"
                 aria-label="Minimize"
               >
                 <svg
@@ -207,10 +208,10 @@ const GlobalAudioPlayer = () => {
 
           {/* Minimized View */}
           {isMinimized && (
-            <div className="p-3 flex items-center gap-3">
+            <div className="flex items-center gap-3 p-3">
               <button
                 onClick={togglePlay}
-                className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-purple-100 transition-colors"
+                className="flex items-center justify-center w-10 h-10 transition-colors bg-white rounded-full hover:bg-purple-100"
                 aria-label={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
@@ -222,7 +223,7 @@ const GlobalAudioPlayer = () => {
 
               <button
                 onClick={() => setIsMinimized(false)}
-                className="text-white hover:text-purple-300 transition-colors"
+                className="text-white transition-colors hover:text-purple-300"
                 aria-label="Expand"
               >
                 <svg

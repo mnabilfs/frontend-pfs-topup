@@ -4,8 +4,9 @@ import { HiOutlineUser } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import FooterHome from "../components/FooterHome";
 import BannerHome from "../components/BannerHome";
+import { API_BASE_URL } from "../services/api.js";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = `${API_BASE_URL}/api`;
 
 const Home = () => {
   const [games, setGames] = useState([]);
@@ -73,8 +74,8 @@ const Home = () => {
         </h2>
 
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="flex items-center justify-center py-12">
+            <div className="w-12 h-12 border-b-2 border-purple-600 rounded-full animate-spin"></div>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-4 md:flex md:gap-10 md:overflow-x-auto md:pb-5">
@@ -85,8 +86,8 @@ const Home = () => {
                   key={game.id}
                   className="flex justify-center col-span-1"
                 >
-                  <div className="game-card-wrapper relative h-37 md:h-55 w-28 md:w-45">
-                    <div className="overflow-hidden bg-purple-900 rounded-lg cursor-pointer h-full w-full hover:scale-105 transition-transform relative z-10">
+                  <div className="relative game-card-wrapper h-37 md:h-55 w-28 md:w-45">
+                    <div className="relative z-10 w-full h-full overflow-hidden transition-transform bg-purple-900 rounded-lg cursor-pointer hover:scale-105">
                       <img
                         src={game.image_url}
                         alt={game.name}
@@ -116,16 +117,16 @@ const Home = () => {
         </h2>
 
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="flex items-center justify-center py-12">
+            <div className="w-12 h-12 border-b-2 border-purple-600 rounded-full animate-spin"></div>
           </div>
         ) : soldAccounts.length === 0 ? (
-          <div className="text-center py-20">
-            <HiOutlineUser className="w-20 h-20 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400 text-xl font-semibold">
+          <div className="py-20 text-center">
+            <HiOutlineUser className="w-20 h-20 mx-auto mb-4 text-gray-600" />
+            <p className="text-xl font-semibold text-gray-400">
               Belum ada akun dijual saat ini
             </p>
-            <p className="text-gray-500 text-sm mt-2">
+            <p className="mt-2 text-sm text-gray-500">
               Admin dapat menambahkan akun melalui dashboard
             </p>
           </div>
@@ -137,7 +138,7 @@ const Home = () => {
                   <img
                     src={acc.image_url}
                     alt={acc.title}
-                    className="object-cover rounded-lg shadow-lg h-35 md:w-124 md:h-66 hover:scale-105 transition-transform"
+                    className="object-cover transition-transform rounded-lg shadow-lg h-35 md:w-124 md:h-66 hover:scale-105"
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/400x320?text=No+Image';
                     }}

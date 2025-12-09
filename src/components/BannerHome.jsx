@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { API_BASE_URL } from "../services/api.js";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = `${API_BASE_URL}/api`;
 
 const BannerHome = () => {
   const [banners, setBanners] = useState([]);

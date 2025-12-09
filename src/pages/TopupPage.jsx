@@ -7,8 +7,9 @@ import ModalDetailPesanan from "../components/ModalDetailPesanan";
 import FooterUniversal from "../components/FooterUniversal";
 import Navbar from "../components/NavBar";
 import CustomerService from "../components/CustomerService";
+import { API_BASE_URL } from "../services/api.js";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = `${API_BASE_URL}/api`;
 
 const TopupPage = () => {
   const { gameId } = useParams();

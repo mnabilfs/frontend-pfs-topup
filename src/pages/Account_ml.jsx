@@ -3,8 +3,9 @@ import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/NavBar";
 import FooterUniversal from "../components/FooterUniversal";
 import CustomerService from "../components/CustomerService";
+import { API_BASE_URL } from "../services/api.js";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = `${API_BASE_URL}/api`;
 
 const AccountDetail = () => {
   const [searchParams] = useSearchParams();
@@ -76,15 +77,15 @@ const AccountDetail = () => {
   // Not found
   if (!account) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white px-4">
+      <div className="flex flex-col items-center justify-center min-h-screen px-4 text-white bg-gray-900">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Akun Tidak Ditemukan</h1>
-          <p className="text-gray-400 mb-6">
+          <h1 className="mb-4 text-4xl font-bold">Akun Tidak Ditemukan</h1>
+          <p className="mb-6 text-gray-400">
             Maaf, akun yang Anda cari tidak tersedia atau sudah terjual.
           </p>
           <a
             href="/"
-            className="inline-block px-6 py-3 bg-purple-800 hover:bg-purple-700 rounded-lg font-semibold transition"
+            className="inline-block px-6 py-3 font-semibold transition bg-purple-800 rounded-lg hover:bg-purple-700"
           >
             Kembali ke Home
           </a>

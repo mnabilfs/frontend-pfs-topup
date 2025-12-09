@@ -1,7 +1,10 @@
 import axios from "axios";
 
+export const API_BASE_URL = import.meta.env.BACKEND_API_URL;
+console.log("API_BASE_URL:", API_BASE_URL);
+
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api", // URL backend Laravel
+  baseURL: API_BASE_URL, // URL backend Laravel
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
