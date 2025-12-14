@@ -56,7 +56,7 @@ export default function Profile() {
         console.log(`${key}:`, value);
       }
 
-      const response = await API.post("/user/profile/update", form, {
+      const response = await API.post("api/user/profile/update", form, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

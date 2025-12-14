@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { login, register } from "../services/authService";
 import { generateSecureLink, ROUTE_IDS } from "../utils/urlEncryptor";
@@ -17,12 +17,12 @@ export default function LoginRegisterModal({ show, close }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser && show) {
-      close();
-    }
-  }, [show, close]);
+  // useEffect(() => {
+  //   const storedUser = localStorage.getItem("user");
+  //   if (storedUser && show) {
+  //     close();
+  //   }
+  // }, [show, close]);
 
   if (!show) return null;
 
@@ -74,14 +74,14 @@ export default function LoginRegisterModal({ show, close }) {
         localStorage.setItem("role", response.user.role);
         localStorage.setItem("user", JSON.stringify(response.user));
 
+        close();
+
         Swal.fire({
           icon: "success",
           title: "Login berhasil",
           text: `Selamat datang, ${response.user?.name || "User"}!`,
           confirmButtonColor: "#6366f1",
         }).then(() => {
-          close?.();
-
           // 🔐 REDIRECT KE SECURE URL
           if (response.user?.role === "admin") {
             const secureUrl = generateSecureLink(ROUTE_IDS.ADMIN_DASHBOARD);
@@ -91,16 +91,33 @@ export default function LoginRegisterModal({ show, close }) {
           }
         });
       } else {
+        // 🔥 REGISTER USER
         await register(values.username, values.email, values.password);
+
+        // 🔥 AUTO LOGIN SETELAH REGISTER
+        const response = await login(values.email, values.password);
+
+        // SIMPAN DATA USER
+        localStorage.setItem("token", response.access_token);
+        localStorage.setItem("role", response.user.role);
+        localStorage.setItem("user", JSON.stringify(response.user));
+
+        // 🔥 TUTUP MODAL dulu sebelum swal muncul
+        close();
 
         Swal.fire({
           icon: "success",
-          title: "Pendaftaran berhasil",
-          text: "Akun kamu sudah terdaftar. Silakan login!",
+          title: "Akun berhasil dibuat",
+          text: `Selamat datang, ${response.user?.name}!`,
           confirmButtonColor: "#6366f1",
         }).then(() => {
-          setIsLogin(true);
-          setValues({ username: "", email: values.email, password: "" });
+          // Redirect sesuai role
+          if (response.user.role === "admin") {
+            const secureUrl = generateSecureLink(ROUTE_IDS.ADMIN_DASHBOARD);
+            window.location.href = secureUrl;
+          } else {
+            window.location.href = "/";
+          }
         });
       }
     } catch (error) {

@@ -23,6 +23,7 @@ const Home = () => {
     try {
       const res = await fetch(`${API_URL}/games`);
       const data = await res.json();
+      console.log("📡 Response status:", data);
       setGames(data);
     } catch (err) {
       console.error("Gagal load game:", err);
@@ -31,21 +32,21 @@ const Home = () => {
 
   const loadSoldAccounts = async () => {
     try {
-      console.log('🔄 Fetching sold accounts...');
+      console.log("🔄 Fetching sold accounts...");
       const res = await fetch(`${API_URL}/sold-accounts`);
-      
-      console.log('📡 Response status:', res.status);
-      
+
+      console.log("📡 Response status:", res.status);
+
       if (res.ok) {
         const data = await res.json();
-        console.log('✅ Data received:', data);
-        
-        const activeAccounts = data.filter(acc => acc.is_active);
-        console.log('📊 Active accounts:', activeAccounts.length);
-        
+        console.log("✅ Data received:", data);
+
+        const activeAccounts = data.filter((acc) => acc.is_active);
+        console.log("📊 Active accounts:", activeAccounts.length);
+
         setSoldAccounts(activeAccounts);
       } else {
-        console.error('❌ Failed to fetch:', res.status);
+        console.error("❌ Failed to fetch:", res.status);
         setSoldAccounts([]);
       }
     } catch (err) {
@@ -86,14 +87,15 @@ const Home = () => {
                   key={game.id}
                   className="flex justify-center col-span-1"
                 >
-                  <div className="relative game-card-wrapper h-37 md:h-55 w-28 md:w-45">
+                  <div className="relative h-40 game-card-wrapper w-28 md:w-44 md:h-56">
                     <div className="relative z-10 w-full h-full overflow-hidden transition-transform bg-purple-900 rounded-lg cursor-pointer hover:scale-105">
                       <img
                         src={game.image_url}
                         alt={game.name}
-                        className="object-cover w-full h-auto"
+                        className="object-cover w-full h-full"
                       />
-                      <div className="px-2 py-2 text-center">
+
+                      <div className="absolute bottom-0 left-0 w-full px-2 py-2 text-center bg-black/60">
                         <span className="text-white text-[.70rem] md:text-sm font-semibold font-Poppins">
                           {game.name}
                         </span>
@@ -140,7 +142,8 @@ const Home = () => {
                     alt={acc.title}
                     className="object-cover transition-transform rounded-lg shadow-lg h-35 md:w-124 md:h-66 hover:scale-105"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/400x320?text=No+Image';
+                      e.target.src =
+                        "https://via.placeholder.com/400x320?text=No+Image";
                     }}
                   />
                 </Link>

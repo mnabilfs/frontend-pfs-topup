@@ -163,7 +163,7 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
   );
 };
 
-const SidebarLink = ({ text, Icon, name, activePage, setActivePage }) => {
+const SidebarLink = ({ text, name, activePage, setActivePage }) => {
   const isActive = activePage === name;
   return (
     <button
@@ -617,7 +617,7 @@ const loadSoldAccounts = async () => {
           const errorJson = JSON.parse(errorText);
           errorMessage = errorJson.message || errorText;
         } catch (e) {
-          errorMessage = errorText;
+          e.errorMessage = errorText;
         }
 
         throw new Error(errorMessage);

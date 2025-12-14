@@ -135,7 +135,7 @@ const AppLayout = () => {
       </Routes>
 
       {/* Login/Register Modal */}
-      <LoginRegisterModal show={showModal} close={closeModal} />
+      <LoginRegisterModal show={showModal} close={closeModal} open={openModal}/>
 
       <GlobalAudioPlayer />
     </>

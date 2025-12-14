@@ -21,7 +21,7 @@ const MusicManager = () => {
   const loadMusics = async () => {
     try {
       setLoading(true);
-      const response = await API.get("/background-music");
+      const response = await API.get("api/background-music");
       setMusics(response.data);
     } catch (error) {
       console.error("Error loading musics:", error);
@@ -48,7 +48,7 @@ const MusicManager = () => {
 
     try {
       setLoading(true);
-      await API.post("/background-music", formData, {
+      await API.post("api/background-music", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -78,7 +78,7 @@ const MusicManager = () => {
   // Set musik aktif
   const handleSetActive = async (id) => {
     try {
-      await API.post(`/background-music/${id}/activate`);
+      await API.post(`api/background-music/${id}/activate`);
       Swal.fire("Berhasil!", "Musik berhasil diaktifkan", "success");
       loadMusics();
     } catch (error) {
@@ -102,7 +102,7 @@ const MusicManager = () => {
 
     if (result.isConfirmed) {
       try {
-        await API.delete(`/background-music/${id}`);
+        await API.delete(`api/background-music/${id}`);
         Swal.fire("Terhapus!", "Musik berhasil dihapus", "success");
         loadMusics();
       } catch (error) {
@@ -202,7 +202,7 @@ const MusicManager = () => {
       <div className="bg-gray-800 rounded-lg">
         {loading && !showUploadForm ? (
           <div className="p-8 text-center text-white">
-            <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="inline-block w-8 h-8 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
             <p className="mt-2">Loading...</p>
           </div>
         ) : musics.length === 0 ? (
