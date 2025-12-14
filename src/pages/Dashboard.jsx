@@ -163,7 +163,7 @@ const ImageUpload = ({ label, value, onChange, preview }) => {
   );
 };
 
-const SidebarLink = ({ text, name, activePage, setActivePage }) => {
+const SidebarLink = ({ text, Icon, name, activePage, setActivePage }) => {
   const isActive = activePage === name;
   return (
     <button

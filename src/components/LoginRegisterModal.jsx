@@ -17,13 +17,6 @@ export default function LoginRegisterModal({ show, close }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // useEffect(() => {
-  //   const storedUser = localStorage.getItem("user");
-  //   if (storedUser && show) {
-  //     close();
-  //   }
-  // }, [show, close]);
-
   if (!show) return null;
 
   const setField = (name, val) => {
