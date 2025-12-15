@@ -396,19 +396,19 @@ const Dashboard = () => {
     }
   };
 
-const loadSoldAccounts = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    const data = await apiCall("/sold-accounts");
-    setSoldAccounts(data);
-  } catch (error) {
-    console.error("Error loading sold accounts:", error);
-    setError("Gagal memuat data akun: " + error.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  const loadSoldAccounts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await apiCall("/sold-accounts");
+      setSoldAccounts(data);
+    } catch (error) {
+      console.error("Error loading sold accounts:", error);
+      setError("Gagal memuat data akun: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEditClick = (type, item) => {
     setEditingId(item.id);
@@ -568,14 +568,14 @@ const loadSoldAccounts = async () => {
       setLoading(true);
       setError(null);
 
-      // Prepare data
+      // UBAH bagian accountData, pastikan gallery disertakan:
       const accountData = {
         title: soldAccountForm.title.trim(),
         description: soldAccountForm.description?.trim() || "",
         price: parseInt(soldAccountForm.price),
         image_url: soldAccountForm.image_url.trim(),
         gallery: Array.isArray(soldAccountForm.gallery)
-          ? soldAccountForm.gallery
+          ? soldAccountForm.gallery.filter((img) => img && img.trim() !== "") // ← FILTER yang kosong
           : [],
         order: parseInt(soldAccountForm.order) || 0,
         is_active: soldAccountForm.is_active ? true : false,
@@ -1370,6 +1370,40 @@ const loadSoldAccounts = async () => {
                         }
                         preview={soldAccountForm.image_url}
                       />
+
+                      <div className="pt-4 border-t border-gray-200">
+                        <label className="block mb-3 text-sm font-medium text-gray-700">
+                          <HiOutlinePhotograph className="inline w-5 h-5 mr-2 text-purple-600" />
+                          Detail Gambar Akun (Maksimal 3)
+                        </label>
+
+                        {[0, 1, 2].map((index) => (
+                          <div key={index} className="mb-4">
+                            <label className="block mb-1 text-xs font-medium text-gray-500">
+                              Detail {index + 1} (Opsional)
+                            </label>
+                            <ImageUpload
+                              label=""
+                              value={soldAccountForm.gallery[index] || ""}
+                              onChange={(val) => {
+                                const newGallery = [
+                                  ...(soldAccountForm.gallery || []),
+                                ];
+                                if (val) {
+                                  newGallery[index] = val;
+                                } else {
+                                  newGallery.splice(index, 1);
+                                }
+                                setSoldAccountForm({
+                                  ...soldAccountForm,
+                                  gallery: newGallery.filter(Boolean), // hapus yang kosong
+                                });
+                              }}
+                              preview={soldAccountForm.gallery[index]}
+                            />
+                          </div>
+                        ))}
+                      </div>
 
                       <div>
                         <label className="block mb-1 text-sm font-medium text-gray-600">
