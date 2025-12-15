@@ -13,6 +13,7 @@ import {
   HiOutlinePencil,
   HiOutlineSearch,
   HiOutlineUserCircle,
+  HiOutlineCreditCard,
   HiOutlineX,
   HiOutlineUpload,
   HiOutlinePhotograph,
@@ -224,6 +225,13 @@ const Sidebar = ({ activePage, setActivePage }) => {
           activePage={activePage}
           setActivePage={setActivePage}
         />
+        <SidebarLink
+          text="Metode Bayar"
+          Icon={HiOutlineCreditCard}
+          name="payment-methods"
+          activePage={activePage}
+          setActivePage={setActivePage}
+        />
         <div className="pt-4 border-t border-gray-200">
           <a
             href="/"
@@ -314,6 +322,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [banners, setBanners] = useState([]);
   const [soldAccounts, setSoldAccounts] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
   const [bannerForm, setBannerForm] = useState({
     title: "",
     image_url: "",
@@ -329,6 +338,12 @@ const Dashboard = () => {
     order: 0,
     is_active: true,
     imageFile: null,
+  });
+  const [paymentForm, setPaymentForm] = useState({
+    name: "",
+    image_url: "",
+    order: 0,
+    is_active: true,
   });
 
   // Check authentication
@@ -347,6 +362,7 @@ const Dashboard = () => {
     loadProducts();
     loadBanners();
     loadSoldAccounts();
+    loadPaymentMethods();
   }, []);
 
   useEffect(() => {
@@ -410,6 +426,16 @@ const Dashboard = () => {
     }
   };
 
+  const loadPaymentMethods = async () => {
+    try {
+      const data = await apiCall("/payment-methods");
+      setPaymentMethods(data);
+    } catch (error) {
+      console.error("Error loading payment methods:", error);
+      setError("Gagal memuat data metode pembayaran: " + error.message);
+    }
+  };
+
   const handleEditClick = (type, item) => {
     setEditingId(item.id);
     setEditingType(type);
@@ -427,6 +453,10 @@ const Dashboard = () => {
     } else if (type === "sold-account") {
       setSoldAccountForm(item);
       setActivePage("sold-accounts");
+    } else if (type === "payment") {
+      // ← TAMBAHKAN INI
+      setPaymentForm(item);
+      setActivePage("payment-methods");
     }
   };
 
@@ -445,6 +475,7 @@ const Dashboard = () => {
       order: 0,
       is_active: true,
     });
+    setPaymentForm({ name: "", image_url: "", order: 0, is_active: true });
   };
 
   const handleGameSubmit = async () => {
@@ -642,6 +673,41 @@ const Dashboard = () => {
     }
   };
 
+  const handlePaymentSubmit = async () => {
+    if (!paymentForm.name || !paymentForm.image_url) {
+      alert("Nama dan Logo metode pembayaran wajib diisi!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const paymentData = {
+        name: paymentForm.name,
+        image_url: paymentForm.image_url,
+        order: parseInt(paymentForm.order) || 0,
+        is_active: paymentForm.is_active,
+      };
+
+      if (editingType === "payment" && editingId) {
+        await apiCall(`/payment-methods/${editingId}`, "PUT", paymentData);
+        alert("Metode pembayaran berhasil di-update!");
+      } else {
+        await apiCall("/payment-methods", "POST", paymentData);
+        alert("Metode pembayaran berhasil disimpan!");
+      }
+
+      await loadPaymentMethods();
+      handleCancelEdit();
+    } catch (error) {
+      console.error("Error saving payment method:", error);
+      alert("Gagal menyimpan metode pembayaran: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (type, id) => {
     if (!window.confirm("Yakin ingin menghapus data ini?")) return;
 
@@ -659,9 +725,11 @@ const Dashboard = () => {
         await apiCall(`/banners/${id}`, "DELETE");
         await loadBanners();
       } else if (type === "sold-accounts") {
-        // TAMBAH INI
         await apiCall(`/sold-accounts/${id}`, "DELETE");
         await loadSoldAccounts();
+      } else if (type === "payment-methods") {
+        await apiCall(`/payment-methods/${id}`, "DELETE");
+        await loadPaymentMethods();
       }
       handleCancelEdit();
       alert("Data berhasil dihapus!");
@@ -1565,6 +1633,213 @@ const Dashboard = () => {
                       {soldAccounts.length === 0 && (
                         <p className="p-6 text-sm text-center text-gray-500">
                           Belum ada akun yang dijual. Tambahkan akun pertama
+                          Anda!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {activePage === "payment-methods" && (
+              <div>
+                <h2 className="mb-6 text-2xl font-bold text-gray-800">
+                  Metode Pembayaran
+                </h2>
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                  {/* FORM TAMBAH/EDIT PAYMENT */}
+                  <div className="lg:col-span-1">
+                    <div className="sticky p-6 space-y-4 bg-white rounded-lg shadow-md top-28">
+                      <h3 className="text-lg font-semibold text-gray-700">
+                        {editingType === "payment"
+                          ? `Edit Metode: ${paymentForm.name}`
+                          : "Tambah Metode Baru"}
+                      </h3>
+
+                      <div>
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
+                          Nama Metode Pembayaran
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Cth: QRIS, DANA, GoPay"
+                          value={paymentForm.name}
+                          onChange={(e) =>
+                            setPaymentForm({
+                              ...paymentForm,
+                              name: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+
+                      <ImageUpload
+                        label="Logo Metode Pembayaran"
+                        value={paymentForm.image_url}
+                        onChange={(val) =>
+                          setPaymentForm({ ...paymentForm, image_url: val })
+                        }
+                        preview={paymentForm.image_url}
+                      />
+
+                      <div>
+                        <label className="block mb-1 text-sm font-medium text-gray-600">
+                          Urutan Tampil
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={paymentForm.order}
+                          onChange={(e) =>
+                            setPaymentForm({
+                              ...paymentForm,
+                              order: e.target.value,
+                            })
+                          }
+                          className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                        />
+                      </div>
+
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="payment-active"
+                          checked={paymentForm.is_active}
+                          onChange={(e) =>
+                            setPaymentForm({
+                              ...paymentForm,
+                              is_active: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <label
+                          htmlFor="payment-active"
+                          className="ml-2 text-sm font-medium text-gray-700"
+                        >
+                          Aktif (Tampilkan di Checkout)
+                        </label>
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-2">
+                        {editingType === "payment" && (
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={loading}
+                            className="flex items-center gap-2 px-4 py-2 font-semibold text-gray-700 transition-all bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+                          >
+                            <HiOutlineX className="w-5 h-5" />
+                            Batal
+                          </button>
+                        )}
+                        <button
+                          onClick={handlePaymentSubmit}
+                          disabled={loading}
+                          className="flex items-center gap-2 px-4 py-2 font-semibold text-white transition-all bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                        >
+                          {editingType === "payment" ? (
+                            <HiOutlinePencil className="w-5 h-5" />
+                          ) : (
+                            <HiOutlinePlus className="w-5 h-5" />
+                          )}
+                          {editingType === "payment"
+                            ? "Update Metode"
+                            : "Simpan Metode"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* TABEL DAFTAR PAYMENT METHODS */}
+                  <div className="lg:col-span-2">
+                    <div className="overflow-hidden bg-white rounded-lg shadow-md">
+                      <table className="w-full">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Logo
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Nama
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Urutan
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Status
+                            </th>
+                            <th className="px-4 py-3 text-xs font-medium text-left text-gray-500 uppercase">
+                              Aksi
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {paymentMethods.map((method) => (
+                            <tr
+                              key={method.id}
+                              className={`hover:bg-gray-50 ${
+                                editingId === method.id &&
+                                editingType === "payment"
+                                  ? "bg-purple-50"
+                                  : ""
+                              }`}
+                            >
+                              <td className="px-4 py-3">
+                                <img
+                                  src={method.image_url}
+                                  alt={method.name}
+                                  className="object-contain w-16 h-10 rounded"
+                                />
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {method.name}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm text-gray-700">
+                                  {method.order}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                {method.is_active ? (
+                                  <span className="px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+                                    Aktif
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">
+                                    Nonaktif
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 space-x-2">
+                                <button
+                                  onClick={() =>
+                                    handleEditClick("payment", method)
+                                  }
+                                  disabled={loading}
+                                  className="p-1.5 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 disabled:opacity-50"
+                                >
+                                  <HiOutlinePencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDelete("payment-methods", method.id)
+                                  }
+                                  disabled={loading}
+                                  className="p-1.5 bg-red-100 text-red-600 rounded-md hover:bg-red-200 disabled:opacity-50"
+                                >
+                                  <HiOutlineTrash className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {paymentMethods.length === 0 && (
+                        <p className="p-6 text-sm text-center text-gray-500">
+                          Belum ada metode pembayaran. Tambahkan metode pertama
                           Anda!
                         </p>
                       )}
