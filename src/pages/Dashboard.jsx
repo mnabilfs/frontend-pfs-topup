@@ -1839,8 +1839,7 @@ const Dashboard = () => {
                       </table>
                       {paymentMethods.length === 0 && (
                         <p className="p-6 text-sm text-center text-gray-500">
-                          Belum ada metode pembayaran. Tambahkan metode pertama
-                          Anda!
+                          Belum ada metode pembayaran
                         </p>
                       )}
                     </div>
