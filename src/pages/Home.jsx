@@ -135,7 +135,10 @@ const Home = () => {
         ) : (
           <div className="flex pb-24 overflow-x-auto gap-11 hide-scrollbar">
             {soldAccounts.map((acc) => (
-              <div key={acc.id} className="flex-shrink-0 cursor-pointer">
+              <div
+                key={acc.id}
+                className="flex-shrink-0 cursor-pointer game-card-wrapper"
+              >
                 <Link to={`/account_ml?id=${acc.id}`}>
                   <img
                     src={acc.image_url}
