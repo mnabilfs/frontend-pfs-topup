@@ -53,8 +53,8 @@ const AccountDetail = () => {
   // ================= LOADING =================
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90">
-        <div className="bat-loader-container">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-90 px-4">
+        <div className="bat-loader-container max-w-xs w-full flex justify-center translate-x-7 -translate-y-3">
           <div className="bat"></div>
         </div>
       </div>
@@ -64,7 +64,7 @@ const AccountDetail = () => {
   // ================= NOT FOUND =================
   if (!account) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-4 text-white bg-gray-900">
+      <div className="relative flex flex-col items-center justify-center min-h-screen px-4 text-white bg-gray-900 pb-32">
         <div className="text-center">
           <h1 className="mb-4 text-4xl font-bold">Akun Tidak Ditemukan</h1>
           <a href="/" className="inline-block px-6 py-3 font-semibold bg-purple-800 rounded-lg hover:bg-purple-700">
